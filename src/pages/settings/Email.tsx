@@ -30,7 +30,7 @@ const PREVIEW_VARS = {
   customer_name: "Jane",
   business_name: "Acme Studio",
   product_name: "Pro plan",
-  link: "https://app.notiproof.com/collect/sample-token",
+  link: "https://app.notiproof.xyz/collect/sample-token",
 };
 
 function renderTemplate(t: string, vars: Record<string, string>) {

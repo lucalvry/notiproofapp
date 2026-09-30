@@ -170,7 +170,7 @@ export default function AgencySignup() {
                 <div className="space-y-2">
                   <Label htmlFor="ag-slug">Portal slug *</Label>
                   <div className="flex items-center gap-1 text-sm">
-                    <span className="text-muted-foreground whitespace-nowrap">notiproof.com/portal/</span>
+                    <span className="text-muted-foreground whitespace-nowrap">notiproof.xyz/portal/</span>
                     <Input id="ag-slug" value={slug} onChange={(e) => setSlug(slugify(e.target.value))} placeholder="acme" />
                   </div>
                   <p className="text-xs text-muted-foreground">Used for your client portal URL. Change later in settings.</p>

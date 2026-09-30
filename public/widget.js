@@ -422,7 +422,7 @@
     var attrText = buildAttribution(proof);
     var attribution = attrText ? '<div class="np-attribution">' + escapeHtml(attrText) + '</div>' : '';
     var footer = (c.powered_by !== false && state.impressions >= 1)
-      ? '<div class="np-footer"><a href="https://notiproof.com" target="_blank" rel="noopener">powered by NotiProof</a></div>'
+      ? '<div class="np-footer"><a href="https://notiproof.xyz" target="_blank" rel="noopener">powered by NotiProof</a></div>'
       : '';
     return '<div class="np-card" data-proof="' + escapeHtml(proof.id) + '">' +
       '<button class="np-close" aria-label="Close">×</button>' +

@@ -13,7 +13,7 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
-const SENDER_EMAIL = Deno.env.get("BREVO_SENDER_EMAIL") ?? "noreply@notiproof.com";
+const SENDER_EMAIL = Deno.env.get("BREVO_SENDER_EMAIL") ?? "noreply@notiproof.xyz";
 const SENDER_NAME_FALLBACK = Deno.env.get("BREVO_SENDER_NAME") ?? "NotiProof";
 
 const admin = createClient(SUPABASE_URL, SERVICE_KEY);
@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
     customer_name: userData.user.user_metadata?.full_name?.split(" ")[0] ?? "there",
     business_name: biz.name,
     product_name: "your purchase",
-    link: "https://app.notiproof.com/collect/sample-token",
+    link: "https://app.notiproof.xyz/collect/sample-token",
   };
   const subject = `[TEST] ${renderTpl(tpl.subject, vars)}`;
   const rendered = renderTpl(tpl.body, vars);

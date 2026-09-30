@@ -16,10 +16,10 @@ const SERVICE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
-const SENDER_EMAIL = Deno.env.get("BREVO_SENDER_EMAIL") ?? "noreply@notiproof.com";
+const SENDER_EMAIL = Deno.env.get("BREVO_SENDER_EMAIL") ?? "noreply@notiproof.xyz";
 const SENDER_NAME_FALLBACK = Deno.env.get("BREVO_SENDER_NAME") ?? "NotiProof";
 const APP_URL = Deno.env.get("APP_URL");
-const FALLBACK_APP_URL = "https://notiproof.com";
+const FALLBACK_APP_URL = "https://notiproof.xyz";
 const PREVIEW_HOST_SUFFIXES = ["lovableproject.com", "lovable.app", "lovable.dev"];
 
 function isPreviewOrigin(origin: string): boolean {
@@ -146,7 +146,7 @@ Deno.serve(async (req) => {
         sender: { email: SENDER_EMAIL, name: senderName },
         to: [{ email: tr.recipient_email, name: tr.recipient_name ?? undefined }],
         subject: renderedSubject,
-        htmlContent: `<div style="font-family:system-ui,sans-serif;color:#1a1a1a;font-size:15px;line-height:1.6">${htmlBody}<div style="margin-top:24px;padding-top:16px;border-top:1px solid #eaeaea;font-size:13px;color:#666"><a href="https://notiproof.com/watch/customer" style="color:#FF6B4A;text-decoration:none">▶ Not sure what to say? Watch this 60-second guide</a></div></div>`,
+        htmlContent: `<div style="font-family:system-ui,sans-serif;color:#1a1a1a;font-size:15px;line-height:1.6">${htmlBody}<div style="margin-top:24px;padding-top:16px;border-top:1px solid #eaeaea;font-size:13px;color:#666"><a href="https://notiproof.xyz/watch/customer" style="color:#FF6B4A;text-decoration:none">▶ Not sure what to say? Watch this 60-second guide</a></div></div>`,
         textContent: renderedBody,
       }),
     });

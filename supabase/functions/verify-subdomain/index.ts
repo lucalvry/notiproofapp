@@ -11,7 +11,7 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const INTERNAL_SECRET = Deno.env.get("INTERNAL_TRIGGER_SECRET");
 // Expected CNAME target. Adjust when DNS infra is finalised; keep override via env.
-const CNAME_TARGET = (Deno.env.get("NOTIPROOF_CNAME_TARGET") ?? "portal.notiproof.com").toLowerCase();
+const CNAME_TARGET = (Deno.env.get("NOTIPROOF_CNAME_TARGET") ?? "portal.notiproof.xyz").toLowerCase();
 
 const admin = createClient(SERVICE_URL, SERVICE_KEY);
 

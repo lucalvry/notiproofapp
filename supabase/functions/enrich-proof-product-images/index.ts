@@ -34,7 +34,7 @@ async function fetchWithTimeout(url: string, ms: number): Promise<Response> {
   try {
     return await fetch(url, {
       signal: ctrl.signal,
-      headers: { "User-Agent": "NotiProof/1.0 (+https://notiproof.com/bot)" },
+      headers: { "User-Agent": "NotiProof/1.0 (+https://notiproof.xyz/bot)" },
     });
   } finally {
     clearTimeout(t);

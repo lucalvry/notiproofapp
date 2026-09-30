@@ -146,11 +146,11 @@ export default function Login() {
   const legalFooter = (
     <p>
       By continuing you agree to our{" "}
-      <a href="https://notiproof.com/terms-of-service/" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+      <a href="https://notiproof.xyz/terms-of-service/" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
         Terms of Service
       </a>{" "}
       and{" "}
-      <a href="https://notiproof.com/privacy-policy/" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+      <a href="https://notiproof.xyz/privacy-policy/" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
         Privacy Policy
       </a>
       .

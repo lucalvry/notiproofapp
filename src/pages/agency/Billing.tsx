@@ -156,7 +156,7 @@ export default function AgencyBilling() {
   const startCheckout = async (planKey: AgencyPlanKey, chosen: BillingInterval) => {
     if (!isAdmin) return;
     if (planKey === "enterprise_agency") {
-      window.location.href = "mailto:sales@notiproof.com?subject=Enterprise%20agency%20plan";
+      window.location.href = "mailto:sales@notiproof.xyz?subject=Enterprise%20agency%20plan";
       return;
     }
     setBusyAction(`${planKey}:${chosen}`);
