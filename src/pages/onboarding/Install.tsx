@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, ArrowRight, Check, Copy, Loader2, Search } from "lucide-react";
+import { APP_URL } from "@/lib/app-url";
 
 export default function OnbInstall() {
   const [params] = useSearchParams();
@@ -42,7 +43,7 @@ export default function OnbInstall() {
     return () => { cancelled = true; clearInterval(id); };
   }, [currentBusinessId, verified, siteUrl]);
 
-  const snippet = `<script async src="${window.location.origin}/widget.js" data-business="${currentBusinessId ?? ""}"${widgetId ? ` data-widget="${widgetId}"` : ""}></script>`;
+  const snippet = `<script async src="${APP_URL}/widget.js" data-business="${currentBusinessId ?? ""}"${widgetId ? ` data-widget="${widgetId}"` : ""}></script>`;
   const wpSnippet = `<!-- Add to your theme's footer.php before </body> -->\n${snippet}`;
 
   const handleCopy = async () => {

@@ -19,6 +19,7 @@ import { PreviewRender, type WidgetConfig as SharedWidgetConfig } from "@/compon
 import type { Database } from "@/integrations/supabase/types";
 import { ReadOnlyBanner } from "@/components/layouts/ReadOnlyBanner";
 import { widgetEditorSchema, fieldErrors } from "@/lib/validation";
+import { APP_URL } from "@/lib/app-url";
 
 type Widget = Database["public"]["Tables"]["widgets"]["Row"] & {
   type?: string;
@@ -245,7 +246,7 @@ export default function WidgetEditor() {
   if (loading) return <div className="space-y-4 max-w-5xl"><Skeleton className="h-8 w-64" /><Skeleton className="h-96 w-full" /></div>;
 
   const widgetIdForSnippet = id ?? "WIDGET_ID";
-  const scriptSnippet = `<script async src="${window.location.origin}/widget.js" data-business="${currentBusinessId}" data-widget="${widgetIdForSnippet}"></script>`;
+  const scriptSnippet = `<script async src="${APP_URL}/widget.js" data-business="${currentBusinessId}" data-widget="${widgetIdForSnippet}"></script>`;
   const placeholderSnippet = `<div data-notiproof-inline data-widget="${widgetIdForSnippet}"></div>`;
   const isEmbedded = EMBEDDED_VARIANTS.includes(variant);
 
