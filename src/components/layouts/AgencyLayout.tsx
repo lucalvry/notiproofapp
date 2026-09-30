@@ -1,7 +1,6 @@
-import { Outlet, Link, NavLink, useNavigate, Navigate } from "react-router-dom";
+import { Outlet, Link, NavLink, useLocation, useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAgency } from "@/contexts/AgencyContext";
-import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   Users,
@@ -13,6 +12,23 @@ import {
 } from "lucide-react";
 import { UserAvatarMenu } from "./UserAvatarMenu";
 import { useIdleLogout } from "@/hooks/useIdleLogout";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarRail,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
 
 const nav = [
   { to: "/agency", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -27,6 +43,7 @@ export function AgencyLayout() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { agency, loading: agencyLoading } = useAgency();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   useIdleLogout();
 
   if (authLoading || agencyLoading) {
@@ -44,62 +61,72 @@ export function AgencyLayout() {
     navigate("/login");
   };
 
-  return (
-    <div className="min-h-screen flex bg-background">
-      <aside className="hidden md:flex w-60 flex-col border-r bg-card">
-        <div className="h-16 flex items-center px-5 border-b">
-          <Link to="/agency" className="text-lg font-bold tracking-tight">
-            <span className="text-primary">Noti</span>
-            <span className="text-accent">Proof</span>
-            <span className="text-xs text-muted-foreground ml-2 font-normal">Agency OS</span>
-          </Link>
-        </div>
-        <div className="px-3 py-3 border-b">
-          <div className="text-xs uppercase tracking-wider text-muted-foreground px-2 mb-1">Agency</div>
-          <div className="px-2 py-1.5 text-sm font-medium truncate">{agency.name}</div>
-        </div>
-        <nav className="flex-1 p-3 flex flex-col gap-1">
-          {nav.map(({ to, label, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-secondary text-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-                }`
-              }
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="p-3 border-t">
-          <Button variant="ghost" size="sm" className="w-full justify-start gap-2" onClick={handleSignOut}>
-            <LogOut className="h-4 w-4" />
-            Sign out
-          </Button>
-        </div>
-      </aside>
+  const AgencySidebar = () => {
+    const { setOpenMobile } = useSidebar();
+    const closeMobile = () => setOpenMobile(false);
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b bg-card flex items-center justify-between px-4 md:px-6">
-          <div className="md:hidden text-lg font-bold tracking-tight">
-            <span className="text-primary">Noti</span>
-            <span className="text-accent">Proof</span>
+    return (
+      <Sidebar collapsible="icon">
+        <SidebarHeader className="border-b border-sidebar-border p-3">
+          <Link to="/agency" onClick={closeMobile} className="flex h-9 items-center gap-2 overflow-hidden px-1 font-bold">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded bg-sidebar-primary text-sm text-sidebar-primary-foreground">N</span>
+            <span className="whitespace-nowrap text-lg group-data-[collapsible=icon]:hidden">Noti<span className="text-sidebar-primary">Proof</span></span>
+          </Link>
+          <div className="overflow-hidden px-2 py-1 group-data-[collapsible=icon]:hidden">
+            <div className="text-xs text-sidebar-foreground/70">Agency</div>
+            <div className="truncate text-sm font-medium">{agency.name}</div>
           </div>
-          <div className="hidden md:block text-sm text-muted-foreground">
-            Welcome back{agency.name ? `, ${agency.name}` : ""}
-          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Agency workspace</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {nav.map(({ to, label, icon: Icon, end }) => (
+                  <SidebarMenuItem key={to}>
+                    <SidebarMenuButton
+                      asChild
+                      tooltip={label}
+                      isActive={end ? pathname === to : pathname === to || pathname.startsWith(`${to}/`)}
+                    >
+                      <NavLink to={to} end={end} onClick={closeMobile}>
+                        <Icon />
+                        <span>{label}</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter className="border-t border-sidebar-border">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltip="Sign out" onClick={handleSignOut}>
+                <LogOut />
+                <span>Sign out</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+    );
+  };
+
+  return (
+    <SidebarProvider defaultOpen>
+      <AgencySidebar />
+      <SidebarInset className="min-w-0">
+        <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b bg-card px-3 md:px-4">
+          <SidebarTrigger className="h-9 w-9" />
           <UserAvatarMenu onSignOut={handleSignOut} />
         </header>
         <main className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto">
           <Outlet />
         </main>
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

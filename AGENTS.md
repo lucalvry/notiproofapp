@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- All signed-in workspaces use the shared collapsible sidebar shell, expanded by default with icon-only collapse, so navigation remains consistent and accessible.
