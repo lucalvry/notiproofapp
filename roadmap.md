@@ -8,3 +8,7 @@
 - [x] Store the supplied official NotiProof logo and icon as portable project assets.
 - [x] Replace every product header and sidebar substitute with the official assets.
 - [x] Add a permanent brand rule and verify all affected screens.
+- [x] Give the official logo a white container in every signed-in sidebar state.
+- [x] Generate widget snippets from the stable app.notiproof.xyz address.
+- [ ] Authorize notiproof.xyz without removing lucalvry.com (blocked by the Free plan's one-domain limit).
+- [ ] Add the corrected widget snippet to the separately managed notiproof.xyz website.
