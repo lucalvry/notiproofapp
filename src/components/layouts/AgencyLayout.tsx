@@ -1,7 +1,6 @@
-import { Outlet, Link, NavLink, useNavigate, Navigate } from "react-router-dom";
+import { Outlet, Link, NavLink, useLocation, useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAgency } from "@/contexts/AgencyContext";
-import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   Users,
@@ -44,6 +43,7 @@ export function AgencyLayout() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { agency, loading: agencyLoading } = useAgency();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   useIdleLogout();
 
   if (authLoading || agencyLoading) {
@@ -84,8 +84,12 @@ export function AgencyLayout() {
               <SidebarMenu>
                 {nav.map(({ to, label, icon: Icon, end }) => (
                   <SidebarMenuItem key={to}>
-                    <SidebarMenuButton asChild tooltip={label}>
-                      <NavLink to={to} end={end} onClick={closeMobile} className={({ isActive }) => isActive ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : ""}>
+                    <SidebarMenuButton
+                      asChild
+                      tooltip={label}
+                      isActive={end ? pathname === to : pathname === to || pathname.startsWith(`${to}/`)}
+                    >
+                      <NavLink to={to} end={end} onClick={closeMobile}>
                         <Icon />
                         <span>{label}</span>
                       </NavLink>

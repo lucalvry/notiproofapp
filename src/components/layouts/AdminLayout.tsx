@@ -1,4 +1,4 @@
-import { Outlet, Link, NavLink, useNavigate } from "react-router-dom";
+import { Outlet, Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIdleLogout } from "@/hooks/useIdleLogout";
@@ -39,6 +39,7 @@ const adminNav = [
 export function AdminLayout() {
   const { signOut, profile } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   useIdleLogout();
 
   const handleSignOut = async () => {
@@ -66,8 +67,15 @@ export function AdminLayout() {
               <SidebarMenu>
                 {adminNav.map(({ to, label, icon: Icon }) => (
                   <SidebarMenuItem key={to}>
-                    <SidebarMenuButton asChild tooltip={label}>
-                      <NavLink to={to} onClick={closeMobile} className={({ isActive }) => isActive ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : ""}>
+                    <SidebarMenuButton
+                      asChild
+                      tooltip={label}
+                      isActive={
+                        (to === "/admin/dashboard" && (pathname === "/admin" || pathname === to)) ||
+                        (to !== "/admin/dashboard" && (pathname === to || pathname.startsWith(`${to}/`)))
+                      }
+                    >
+                      <NavLink to={to} onClick={closeMobile}>
                         <Icon />
                         <span>{label}</span>
                       </NavLink>
