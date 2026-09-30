@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* NotiProof design system. All colors HSL. */
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 217 60% 14%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 217 60% 14%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 217 60% 14%;
+
+    /* Brand: navy primary, sky accent */
+    --primary: 217 71% 23%;          /* #0F3460 navy */
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 217 71% 18%;
+
+    --accent: 199 89% 48%;            /* #0EA5E9 sky */
+    --accent-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 217 60% 14%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --teal: 173 80% 40%;
+    --teal-foreground: 0 0% 100%;
+    --purple: 262 83% 58%;
+    --purple-foreground: 0 0% 100%;
+    --gold: 43 96% 56%;
+    --gold-foreground: 217 60% 14%;
+    --coral: 0 84% 65%;
+    --coral-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 217 60% 14%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 199 89% 48%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 217 71% 23%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 60% 18%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 217 60% 18%;
+    --sidebar-ring: 199 89% 48%;
+  }
+
+  .dark {
+    --background: 217 60% 8%;
+    --foreground: 210 40% 98%;
+    --card: 217 50% 12%;
+    --card-foreground: 210 40% 98%;
+    --popover: 217 50% 12%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 217 60% 8%;
+    --primary-hover: 199 89% 55%;
+    --accent: 199 89% 48%;
+    --accent-foreground: 217 60% 8%;
+    --secondary: 217 33% 18%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 18%;
+    --muted-foreground: 215 20% 70%;
+    --border: 217 33% 22%;
+    --input: 217 33% 22%;
+    --ring: 199 89% 48%;
+    --sidebar-background: 217 60% 8%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 18%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 22%;
+    --sidebar-ring: 199 89% 48%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground antialiased; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+  h1, h2, h3, h4 { @apply font-semibold tracking-tight; }
+}
+
+@layer utilities {
+  /* Onboarding completion confetti */
+  @keyframes confetti-fall {
+    0%   { transform: translate3d(0, -20px, 0) rotate(0deg);   opacity: 0; }
+    10%  { opacity: 1; }
+    100% { transform: translate3d(0, 480px, 0) rotate(720deg); opacity: 0; }
+  }
+  .confetti-piece {
+    position: absolute;
+    top: 0;
+    border-radius: 1px;
+    animation-name: confetti-fall;
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1);
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+    will-change: transform, opacity;
+  }
+}
+
