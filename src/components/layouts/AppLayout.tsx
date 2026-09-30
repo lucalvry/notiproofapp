@@ -47,6 +47,7 @@ import { useIdleLogout } from "@/hooks/useIdleLogout";
 import { NotificationBell } from "./NotificationBell";
 import { UserAvatarMenu } from "./UserAvatarMenu";
 import { ImpersonationBanner } from "./ImpersonationBanner";
+import { NotiProofBrand } from "@/components/brand/NotiProofBrand";
 import {
   Sidebar,
   SidebarContent,
@@ -267,9 +268,8 @@ function MainSidebar({ onSignOut }: { onSignOut: () => void }) {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border p-3">
-        <Link to="/dashboard" onClick={closeMobile} className="flex h-9 items-center gap-2 overflow-hidden px-1 font-bold">
-          <span className="flex size-7 shrink-0 items-center justify-center rounded bg-sidebar-primary text-sm text-sidebar-primary-foreground">N</span>
-          <span className="whitespace-nowrap text-lg group-data-[collapsible=icon]:hidden">Noti<span className="text-sidebar-primary">Proof</span></span>
+        <Link to="/dashboard" onClick={closeMobile} className="flex h-9 items-center overflow-hidden px-1">
+          <NotiProofBrand variant="sidebar" />
         </Link>
         <BusinessSwitcher />
       </SidebarHeader>
