@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - All signed-in workspaces use the shared collapsible sidebar shell, expanded by default with icon-only collapse, so navigation remains consistent and accessible.
+- Only the supplied NotiProof logo and icon assets may represent the product brand; never recreate the logo with text or substitute a letter badge, so branding stays exact and portable.

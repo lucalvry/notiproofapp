@@ -5,3 +5,6 @@
 - [x] Align the Admin workspace with the shared collapsible sidebar and mobile drawer.
 - [x] Preserve utility controls, active states, business switching, and sign-out access.
 - [x] Verify type checking and preview build health.
+- [ ] Store the supplied official NotiProof logo and icon as portable project assets.
+- [ ] Replace every product header and sidebar substitute with the official assets.
+- [ ] Add a permanent brand rule and verify all affected screens.
