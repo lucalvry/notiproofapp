@@ -17,10 +17,9 @@
 - Testimonial emails that are due still go out, up to 2 minutes later.
 - Delete scheduled-task history older than 7 days, and add a nightly clean-up so it stays small.
 
-## 3. Bunny CDN: cdn.notiproof.xyz
-- New uploads use `cdn.notiproof.xyz`. You'll enter this in a secure form.
+## 3. Bunny CDN: widget script
 - Upload the updated widget script after the size and syntax checks.
-- Test: upload one image and confirm it loads from the new address.
+- Uploads keep using Bunny's default address (notiproof.b-cdn.net); nothing about that changes.
 
 ## 4. Remaining notiproof.xyz links and login messages
 - Check the app for any leftover `notiproof.com` links (sign-in redirects, Terms, Privacy, Contact, support email) and update them.
@@ -32,5 +31,4 @@
 ## Technical details
 - Migration: `REVOKE EXECUTE ... FROM anon` on the admin_* functions and accept_agency_team_invitation. `REVOKE ... FROM authenticated, anon, public` on the trigger and maintenance helpers and check_rate_limit. Keep `service_role`. Before revoking, rg `src/` and `supabase/functions` for `.rpc('<name>')`.
 - Cron: `cron.alter_job` on `dispatch-scheduled-jobs-every-minute` with schedule `*/2 * * * *`. Add an early `select id ... limit 1` on due jobs in the function and return early when none are found. Delete rows in `cron.job_run_details` older than 7 days, plus a daily job that does the same.
-- Secret: set `BUNNY_CDN_HOSTNAME` with update_secret, then redeploy `bunny-upload-url`.
-- Verify with the linter, the build log and a Playwright login run plus a test upload.
+- Verify with the linter, the build log and a Playwright login run.
