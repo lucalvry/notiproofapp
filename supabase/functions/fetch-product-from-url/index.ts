@@ -68,7 +68,7 @@ async function fetchHtml(url: string): Promise<string | null> {
       redirect: "follow",
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (compatible; NotiProofBot/1.0; +https://notiproof.com/bot)",
+          "Mozilla/5.0 (compatible; NotiProofBot/1.0; +https://notiproof.xyz/bot)",
         "Accept": "text/html,application/xhtml+xml",
         "Accept-Language": "en-US,en;q=0.9",
       },

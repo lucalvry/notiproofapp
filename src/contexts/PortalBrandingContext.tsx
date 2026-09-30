@@ -28,6 +28,9 @@ const APP_HOSTS = new Set([
   "notiproof.com",
   "www.notiproof.com",
   "app.notiproof.com",
+  "notiproof.xyz",
+  "www.notiproof.xyz",
+  "app.notiproof.xyz",
 ]);
 
 /** Returns the subdomain to look up, or null when on the main app host. */

@@ -16,7 +16,7 @@ export default function Suspended() {
             This account has been suspended. Please contact support to reactivate it.
           </p>
           <Button asChild variant="outline" className="mt-6">
-            <a href="mailto:support@notiproof.com">Contact support</a>
+            <a href="mailto:support@notiproof.xyz">Contact support</a>
           </Button>
           <p className="text-xs text-muted-foreground mt-4">
             <Link to="/login" className="underline">Sign in with a different account</Link>

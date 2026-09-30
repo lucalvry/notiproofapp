@@ -1,3 +1,4 @@
+import { authErrorMessage } from "@/lib/auth-error";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -106,7 +107,7 @@ export default function Register() {
     });
     setLoading(false);
     if (error) {
-      toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
+      toast({ title: "Sign up failed", description: authErrorMessage(error), variant: "destructive" });
       return;
     }
     if (data.session && data.user) {
@@ -146,7 +147,7 @@ export default function Register() {
   const legalFooter = (
     <p>
       Need help?{" "}
-      <a href="https://notiproof.com/contact" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+      <a href="https://notiproof.xyz/contact" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
         Contact support
       </a>
     </p>
@@ -253,11 +254,11 @@ export default function Register() {
           />
           <Label htmlFor="terms" className="text-xs leading-relaxed text-muted-foreground font-normal cursor-pointer">
             I agree to NotiProof's{" "}
-            <a href="https://notiproof.com/terms-of-service/" target="_blank" rel="noopener noreferrer" className="text-foreground underline hover:text-accent">
+            <a href="https://notiproof.xyz/terms-of-service/" target="_blank" rel="noopener noreferrer" className="text-foreground underline hover:text-accent">
               Terms of Service
             </a>{" "}
             and{" "}
-            <a href="https://notiproof.com/privacy-policy/" target="_blank" rel="noopener noreferrer" className="text-foreground underline hover:text-accent">
+            <a href="https://notiproof.xyz/privacy-policy/" target="_blank" rel="noopener noreferrer" className="text-foreground underline hover:text-accent">
               Privacy Policy
             </a>
             , and consent to receive product updates.

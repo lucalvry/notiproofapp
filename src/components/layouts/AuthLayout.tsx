@@ -23,7 +23,7 @@ export function AuthLayout({ children, title, subtitle, footerSlot }: AuthLayout
         </div>
 
         <div className="relative">
-          <a href="https://notiproof.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-2xl font-bold tracking-tight hover:opacity-80 transition-opacity">
+          <a href="https://notiproof.xyz" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-2xl font-bold tracking-tight hover:opacity-80 transition-opacity">
             Noti<span className="text-accent-foreground/90">Proof</span>
           </a>
         </div>
@@ -86,7 +86,7 @@ export function AuthLayout({ children, title, subtitle, footerSlot }: AuthLayout
       <main className="flex flex-col min-h-screen lg:min-h-0">
         {/* Mobile header */}
         <header className="lg:hidden p-6">
-          <a href="https://notiproof.com" target="_blank" rel="noopener noreferrer" className="text-xl font-bold tracking-tight text-primary hover:opacity-80 transition-opacity">
+          <a href="https://notiproof.xyz" target="_blank" rel="noopener noreferrer" className="text-xl font-bold tracking-tight text-primary hover:opacity-80 transition-opacity">
             Noti<span className="text-accent">Proof</span>
           </a>
         </header>

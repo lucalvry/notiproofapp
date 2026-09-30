@@ -1,3 +1,4 @@
+import { authErrorMessage } from "@/lib/auth-error";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,7 +39,7 @@ export default function ResetPassword() {
     const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
     setLoading(false);
     if (error) {
-      toast({ title: "Failed", description: error.message, variant: "destructive" });
+      toast({ title: "Failed", description: authErrorMessage(error), variant: "destructive" });
       return;
     }
     toast({ title: "Password updated", description: "You can now sign in." });

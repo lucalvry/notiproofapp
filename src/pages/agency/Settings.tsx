@@ -165,7 +165,7 @@ export default function AgencySettings() {
               <div className="space-y-2">
                 <Label htmlFor="ag-slug">Portal slug</Label>
                 <div className="flex items-center gap-1 text-sm">
-                  <span className="text-muted-foreground whitespace-nowrap">notiproof.com/portal/</span>
+                  <span className="text-muted-foreground whitespace-nowrap">notiproof.xyz/portal/</span>
                   <Input
                     id="ag-slug"
                     value={portalSlug}
@@ -189,7 +189,7 @@ export default function AgencySettings() {
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Point a CNAME record from your subdomain to <code className="px-1 bg-secondary rounded">portal.notiproof.com</code>.{" "}
+                  Point a CNAME record from your subdomain to <code className="px-1 bg-secondary rounded">portal.notiproof.xyz</code>.{" "}
                   {agency.subdomain_verified ? (
                     <span className="text-emerald-600 font-medium">Verified ✓</span>
                   ) : (
