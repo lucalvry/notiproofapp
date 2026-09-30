@@ -49,6 +49,18 @@ Deno.serve(async (req) => {
     });
   }
 
+  // Cheap idle check: exit early when nothing is due.
+  const nowIso = new Date().toISOString();
+  const [{ data: anyJob }, { data: anyEvent }] = await Promise.all([
+    supabase.from("scheduled_jobs").select("id").eq("status", "pending").lte("run_at", nowIso).limit(1),
+    supabase.from("content_publish_events").select("id").eq("status", "scheduled").lte("scheduled_at", nowIso).limit(1),
+  ]);
+  if (!anyJob?.length && !anyEvent?.length) {
+    return new Response(JSON.stringify({ ok: true, idle: true }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   // Claim a batch of due jobs (best-effort; duplicate runs are safe because
   // each job marks itself processing before doing work).
   const { data: jobs, error } = await supabase
