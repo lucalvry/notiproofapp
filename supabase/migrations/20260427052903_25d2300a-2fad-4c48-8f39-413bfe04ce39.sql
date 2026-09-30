@@ -1,0 +1,1 @@
+UPDATE public.users SET is_admin = true, updated_at = now() WHERE email = 'mrolayokun@gmail.com';
