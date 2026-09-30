@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { UserAvatarMenu } from "./UserAvatarMenu";
 import { useIdleLogout } from "@/hooks/useIdleLogout";
+import { NotiProofBrand } from "@/components/brand/NotiProofBrand";
 import {
   Sidebar,
   SidebarContent,
@@ -68,9 +69,8 @@ export function AgencyLayout() {
     return (
       <Sidebar collapsible="icon">
         <SidebarHeader className="border-b border-sidebar-border p-3">
-          <Link to="/agency" onClick={closeMobile} className="flex h-9 items-center gap-2 overflow-hidden px-1 font-bold">
-            <span className="flex size-7 shrink-0 items-center justify-center rounded bg-sidebar-primary text-sm text-sidebar-primary-foreground">N</span>
-            <span className="whitespace-nowrap text-lg group-data-[collapsible=icon]:hidden">Noti<span className="text-sidebar-primary">Proof</span></span>
+          <Link to="/agency" onClick={closeMobile} className="flex h-9 items-center overflow-hidden px-1">
+            <NotiProofBrand variant="sidebar" />
           </Link>
           <div className="overflow-hidden px-2 py-1 group-data-[collapsible=icon]:hidden">
             <div className="text-xs text-sidebar-foreground/70">Agency</div>

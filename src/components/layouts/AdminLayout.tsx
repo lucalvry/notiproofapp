@@ -3,6 +3,7 @@ import { AdminRoute } from "@/components/auth/AdminRoute";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIdleLogout } from "@/hooks/useIdleLogout";
 import { ImpersonationBanner } from "./ImpersonationBanner";
+import { NotiProofBrand } from "@/components/brand/NotiProofBrand";
 import {
   LayoutDashboard,
   Building2,
@@ -54,9 +55,8 @@ export function AdminLayout() {
     return (
       <Sidebar collapsible="icon">
         <SidebarHeader className="border-b border-sidebar-border p-3">
-          <Link to="/admin/dashboard" onClick={closeMobile} className="flex h-9 items-center gap-2 overflow-hidden px-1 font-bold">
-            <span className="flex size-7 shrink-0 items-center justify-center rounded bg-sidebar-primary text-sm text-sidebar-primary-foreground">N</span>
-            <span className="whitespace-nowrap text-lg group-data-[collapsible=icon]:hidden">Noti<span className="text-sidebar-primary">Proof</span></span>
+          <Link to="/admin/dashboard" onClick={closeMobile} className="flex h-9 items-center overflow-hidden px-1">
+            <NotiProofBrand variant="sidebar" />
           </Link>
           <div className="px-2 text-xs uppercase text-sidebar-foreground/70 group-data-[collapsible=icon]:hidden">Admin console</div>
         </SidebarHeader>
