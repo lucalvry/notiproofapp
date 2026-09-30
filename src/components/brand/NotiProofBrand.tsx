@@ -24,7 +24,7 @@ export function NotiProofBrand({ variant = "logo", className }: NotiProofBrandPr
     return (
       <span
         className={cn(
-          "flex h-10 min-w-0 items-center rounded bg-background p-1.5 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-1",
+          "flex h-10 w-full min-w-0 items-center rounded bg-brand-surface px-2 py-1.5 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-1",
           className,
         )}
       >
@@ -33,7 +33,7 @@ export function NotiProofBrand({ variant = "logo", className }: NotiProofBrandPr
           alt="NotiProof"
           width={126}
           height={40}
-          className="h-7 w-auto max-w-[9rem] object-contain object-left group-data-[collapsible=icon]:hidden"
+          className="h-7 w-auto max-w-full object-contain object-left group-data-[collapsible=icon]:hidden"
         />
         <img
           src={notiProofIcon}

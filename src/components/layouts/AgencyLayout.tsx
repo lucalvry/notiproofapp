@@ -68,8 +68,8 @@ export function AgencyLayout() {
 
     return (
       <Sidebar collapsible="icon">
-        <SidebarHeader className="border-b border-sidebar-border p-3">
-          <Link to="/agency" onClick={closeMobile} className="flex h-9 items-center overflow-hidden px-1">
+        <SidebarHeader className="border-b border-sidebar-border p-3 group-data-[collapsible=icon]:p-2">
+          <Link to="/agency" onClick={closeMobile} className="flex h-10 w-full items-center overflow-hidden group-data-[collapsible=icon]:h-8">
             <NotiProofBrand variant="sidebar" />
           </Link>
           <div className="overflow-hidden px-2 py-1 group-data-[collapsible=icon]:hidden">
