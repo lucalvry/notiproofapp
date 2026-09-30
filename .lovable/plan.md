@@ -19,7 +19,6 @@
 
 ## 3. Bunny CDN: cdn.notiproof.xyz
 - New uploads use `cdn.notiproof.xyz`. You'll enter this in a secure form.
-- Switch the 3 saved images that use Bunny's default address to the new address.
 - Upload the updated widget script after the size and syntax checks.
 - Test: upload one image and confirm it loads from the new address.
 
@@ -34,5 +33,4 @@
 - Migration: `REVOKE EXECUTE ... FROM anon` on the admin_* functions and accept_agency_team_invitation. `REVOKE ... FROM authenticated, anon, public` on the trigger and maintenance helpers and check_rate_limit. Keep `service_role`. Before revoking, rg `src/` and `supabase/functions` for `.rpc('<name>')`.
 - Cron: `cron.alter_job` on `dispatch-scheduled-jobs-every-minute` with schedule `*/2 * * * *`. Add an early `select id ... limit 1` on due jobs in the function and return early when none are found. Delete rows in `cron.job_run_details` older than 7 days, plus a daily job that does the same.
 - Secret: set `BUNNY_CDN_HOSTNAME` with update_secret, then redeploy `bunny-upload-url`.
-- Data: `regexp_replace(... '^https://[^/]+\.b-cdn\.net', 'https://cdn.notiproof.xyz')` on the proof_objects media columns and any other media columns that match.
 - Verify with the linter, the build log and a Playwright login run plus a test upload.
