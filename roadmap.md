@@ -10,5 +10,5 @@
 - [x] Add a permanent brand rule and verify all affected screens.
 - [x] Give the official logo a white container in every signed-in sidebar state.
 - [x] Generate widget snippets from the stable app.notiproof.xyz address.
-- [ ] Authorize notiproof.xyz without removing lucalvry.com (blocked by the Free plan's one-domain limit).
+- [x] Replace lucalvry.com with notiproof.xyz as the approved website, as selected.
 - [ ] Add the corrected widget snippet to the separately managed notiproof.xyz website.
