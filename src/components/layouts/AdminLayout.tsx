@@ -1,10 +1,8 @@
-import { useState } from "react";
 import { Outlet, Link, NavLink, useNavigate } from "react-router-dom";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIdleLogout } from "@/hooks/useIdleLogout";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ImpersonationBanner } from "./ImpersonationBanner";
 import {
   LayoutDashboard,
@@ -13,8 +11,24 @@ import {
   ShieldAlert,
   LogOut,
   ArrowLeft,
-  Menu,
 } from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarRail,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
 
 const adminNav = [
   { to: "/admin/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -26,7 +40,6 @@ const adminNav = [
 export function AdminLayout() {
   const { signOut, profile } = useAuth();
   const navigate = useNavigate();
-  const [mobileOpen, setMobileOpen] = useState(false);
   useIdleLogout();
 
   const handleSignOut = async () => {
@@ -34,7 +47,61 @@ export function AdminLayout() {
     navigate("/login");
   };
 
-  const NavLinks = ({ onNavigate }: { onNavigate?: () => void }) => (
+  const AdminSidebar = () => {
+    const { setOpenMobile } = useSidebar();
+    const closeMobile = () => setOpenMobile(false);
+
+    return (
+      <Sidebar collapsible="icon">
+        <SidebarHeader className="border-b border-sidebar-border p-3">
+          <Link to="/admin/dashboard" onClick={closeMobile} className="flex h-9 items-center gap-2 overflow-hidden px-1 font-bold">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded bg-sidebar-primary text-sm text-sidebar-primary-foreground">N</span>
+            <span className="whitespace-nowrap text-lg group-data-[collapsible=icon]:hidden">Noti<span className="text-sidebar-primary">Proof</span></span>
+          </Link>
+          <div className="px-2 text-xs uppercase text-sidebar-foreground/70 group-data-[collapsible=icon]:hidden">Admin console</div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Administration</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminNav.map(({ to, label, icon: Icon }) => (
+                  <SidebarMenuItem key={to}>
+                    <SidebarMenuButton asChild tooltip={label}>
+                      <NavLink to={to} onClick={closeMobile} className={({ isActive }) => isActive ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : ""}>
+                        <Icon />
+                        <span>{label}</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter className="border-t border-sidebar-border">
+          <div className="truncate px-2 text-xs text-sidebar-foreground/70 group-data-[collapsible=icon]:hidden">{profile?.email}</div>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltip="Back to app" onClick={() => navigate("/dashboard")}>
+                <ArrowLeft />
+                <span>Back to app</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltip="Sign out" onClick={handleSignOut}>
+                <LogOut />
+                <span>Sign out</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+    );
+  };
+
+  const LegacyNavLinks = ({ onNavigate }: { onNavigate?: () => void }) => (
     <>
       {adminNav.map(({ to, label, icon: Icon }) => (
         <NavLink
@@ -84,63 +151,18 @@ export function AdminLayout() {
 
   return (
     <AdminRoute>
-      <ImpersonationBanner />
-      <div className="min-h-screen flex bg-background">
-        {/* Desktop sidebar */}
-        <aside className="hidden md:flex w-64 bg-sidebar text-sidebar-foreground flex-col">
-          <div className="p-6 border-b border-sidebar-border">
-            <Link to="/admin/dashboard" className="text-xl font-bold">
-              Noti<span className="text-sidebar-primary">Proof</span>
-            </Link>
-            <div className="text-xs uppercase tracking-wider mt-1 opacity-70">Admin</div>
-          </div>
-          <nav className="flex-1 p-4 space-y-1">
-            <NavLinks />
-          </nav>
-          <SidebarFooter />
-        </aside>
-
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Mobile top bar */}
-          <header className="md:hidden flex items-center justify-between px-4 h-14 border-b bg-sidebar text-sidebar-foreground">
-            <Link to="/admin/dashboard" className="font-bold">
-              Noti<span className="text-sidebar-primary">Proof</span>
-              <span className="ml-1 text-xs opacity-70 uppercase tracking-wider">Admin</span>
-            </Link>
-            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-              <SheetTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-sidebar-foreground hover:bg-sidebar-accent"
-                  aria-label="Open menu"
-                >
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent
-                side="left"
-                className="w-72 p-0 bg-sidebar text-sidebar-foreground border-sidebar-border flex flex-col"
-              >
-                <div className="p-6 border-b border-sidebar-border">
-                  <div className="text-xl font-bold">
-                    Noti<span className="text-sidebar-primary">Proof</span>
-                  </div>
-                  <div className="text-xs uppercase tracking-wider mt-1 opacity-70">Admin</div>
-                </div>
-                <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-                  <NavLinks onNavigate={() => setMobileOpen(false)} />
-                </nav>
-                <SidebarFooter onNavigate={() => setMobileOpen(false)} />
-              </SheetContent>
-            </Sheet>
+      <SidebarProvider defaultOpen>
+        <AdminSidebar />
+        <SidebarInset className="min-w-0">
+          <ImpersonationBanner />
+          <header className="sticky top-0 z-40 flex h-14 items-center border-b bg-card px-3 md:px-4">
+            <SidebarTrigger className="h-9 w-9" />
           </header>
-
           <main className="flex-1 p-4 md:p-8 overflow-auto">
             <Outlet />
           </main>
-        </div>
-      </div>
+        </SidebarInset>
+      </SidebarProvider>
     </AdminRoute>
   );
 }

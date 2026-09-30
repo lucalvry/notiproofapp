@@ -1,4 +1,4 @@
-import { Outlet, Link, NavLink, useNavigate } from "react-router-dom";
+import { Outlet, Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -11,8 +11,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   LayoutDashboard,
   MessageSquareQuote,
@@ -25,7 +23,6 @@ import {
   Settings,
   LogOut,
   Shield,
-  Menu,
   Check,
   Plus,
   ChevronDown,
@@ -50,6 +47,24 @@ import { useIdleLogout } from "@/hooks/useIdleLogout";
 import { NotificationBell } from "./NotificationBell";
 import { UserAvatarMenu } from "./UserAvatarMenu";
 import { ImpersonationBanner } from "./ImpersonationBanner";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarRail,
+  SidebarSeparator,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -108,7 +123,7 @@ function RoleBadge({ role }: { role: "owner" | "editor" | "viewer" }) {
   );
 }
 
-function BusinessSwitcher({ inline = false }: { inline?: boolean }) {
+function BusinessSwitcher() {
   const { businesses, currentBusinessId, setCurrentBusinessId, refresh } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -117,6 +132,7 @@ function BusinessSwitcher({ inline = false }: { inline?: boolean }) {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
+  const { state } = useSidebar();
 
   const current = businesses.find((b) => b.id === currentBusinessId);
   const ownedCount = businesses.filter((b) => b.role === "owner").length;
@@ -161,13 +177,14 @@ function BusinessSwitcher({ inline = false }: { inline?: boolean }) {
           <Button
             variant="ghost"
             size="sm"
-            className={inline ? "w-full justify-start gap-2" : "gap-2 max-w-[180px]"}
+            className="w-full justify-start gap-2 overflow-hidden px-2 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-1.5"
+            title={state === "collapsed" ? current?.name ?? "Select business" : undefined}
           >
             {current && <BusinessAvatar name={current.name} logoUrl={current.logo_url} size={20} />}
-            <span className="truncate text-sm font-medium">
+            <span className="truncate text-sm font-medium group-data-[collapsible=icon]:hidden">
               {current?.name ?? "Select business"}
             </span>
-            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <ChevronDown className="ml-auto h-3.5 w-3.5 text-muted-foreground shrink-0 group-data-[collapsible=icon]:hidden" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-72">
@@ -234,10 +251,93 @@ function BusinessSwitcher({ inline = false }: { inline?: boolean }) {
   );
 }
 
+function MainSidebar({ onSignOut }: { onSignOut: () => void }) {
+  const { profile } = useAuth();
+  const { pathname } = useLocation();
+  const { setOpenMobile } = useSidebar();
+
+  const closeMobile = () => setOpenMobile(false);
+  const isActive = (to: string) => pathname === to || (to !== "/dashboard" && pathname.startsWith(`${to}/`));
+  const settings = [
+    { to: "/settings/profile", label: "Settings", icon: Settings },
+    { to: "/settings/billing", label: "Billing", icon: CreditCard },
+    { to: "/settings/team", label: "Team", icon: Users },
+  ];
+
+  return (
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="border-b border-sidebar-border p-3">
+        <Link to="/dashboard" onClick={closeMobile} className="flex h-9 items-center gap-2 overflow-hidden px-1 font-bold">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded bg-sidebar-primary text-sm text-sidebar-primary-foreground">N</span>
+          <span className="whitespace-nowrap text-lg group-data-[collapsible=icon]:hidden">Noti<span className="text-sidebar-primary">Proof</span></span>
+        </Link>
+        <BusinessSwitcher />
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {nav.map(({ to, label, icon: Icon }) => (
+                <SidebarMenuItem key={to}>
+                  <SidebarMenuButton asChild isActive={isActive(to)} tooltip={label}>
+                    <NavLink to={to} onClick={closeMobile}>
+                      <Icon />
+                      <span>{label}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarSeparator />
+        <SidebarGroup>
+          <SidebarGroupLabel>Account</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {settings.map(({ to, label, icon: Icon }) => (
+                <SidebarMenuItem key={to}>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith(to)} tooltip={label}>
+                    <NavLink to={to} onClick={closeMobile}>
+                      <Icon />
+                      <span>{label}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+              {profile?.is_admin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")} tooltip="Admin">
+                    <NavLink to="/admin" onClick={closeMobile}>
+                      <Shield />
+                      <span>Admin</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter className="border-t border-sidebar-border">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton tooltip="Sign out" onClick={onSignOut}>
+              <LogOut />
+              <span>Sign out</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+      <SidebarRail />
+    </Sidebar>
+  );
+}
+
 export function AppLayout() {
-  const { profile, signOut } = useAuth();
+  const { signOut } = useAuth();
   const navigate = useNavigate();
-  const [drawerOpen, setDrawerOpen] = useState(false);
   useIdleLogout();
 
   const handleSignOut = async () => {
@@ -247,162 +347,22 @@ export function AppLayout() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen flex flex-col bg-background">
-        <ImpersonationBanner />
-        <header className="border-b bg-card sticky top-0 z-40">
-          <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-3 xl:gap-4 min-w-0">
-              {/* Mobile / tablet hamburger */}
-              <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="sm" className="xl:hidden -ml-2 p-2" aria-label="Open menu">
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-72 p-0">
-                  <SheetHeader className="p-4 border-b">
-                    <SheetTitle>
-                      <Link to="/dashboard" onClick={() => setDrawerOpen(false)} className="text-xl font-bold tracking-tight text-primary">
-                        Noti<span className="text-accent">Proof</span>
-                      </Link>
-                    </SheetTitle>
-                  </SheetHeader>
-                  <div className="p-3 border-b">
-                    <BusinessSwitcher inline />
-                  </div>
-                  <nav className="p-3 flex flex-col gap-1">
-                    {nav.map(({ to, label, icon: Icon }) => (
-                      <NavLink
-                        key={to}
-                        to={to}
-                        onClick={() => setDrawerOpen(false)}
-                        className={({ isActive }) =>
-                          `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                            isActive ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-                          }`
-                        }
-                      >
-                        <Icon className="h-4 w-4" />
-                        {label}
-                      </NavLink>
-                    ))}
-                    {profile?.is_admin && (
-                      <NavLink
-                        to="/admin"
-                        onClick={() => setDrawerOpen(false)}
-                        className={({ isActive }) =>
-                          `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                            isActive ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-                          }`
-                        }
-                      >
-                        <Shield className="h-4 w-4" />
-                        Admin
-                      </NavLink>
-                    )}
-                    <div className="my-2 border-t" />
-                    <NavLink
-                      to="/settings/profile"
-                      onClick={() => setDrawerOpen(false)}
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                          isActive ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-                        }`
-                      }
-                    >
-                      <Settings className="h-4 w-4" />
-                      Settings
-                    </NavLink>
-                    <NavLink
-                      to="/settings/billing"
-                      onClick={() => setDrawerOpen(false)}
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                          isActive ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-                        }`
-                      }
-                    >
-                      <CreditCard className="h-4 w-4" />
-                      Billing
-                    </NavLink>
-                    <NavLink
-                      to="/settings/team"
-                      onClick={() => setDrawerOpen(false)}
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                          isActive ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-                        }`
-                      }
-                    >
-                      <Users className="h-4 w-4" />
-                      Team
-                    </NavLink>
-                  </nav>
-                  <div className="p-3 border-t mt-auto">
-                    <Button variant="ghost" size="sm" className="w-full justify-start gap-2" onClick={handleSignOut}>
-                      <LogOut className="h-4 w-4" />
-                      Sign out
-                    </Button>
-                  </div>
-                </SheetContent>
-              </Sheet>
-
-              <Link to="/dashboard" className="text-xl font-bold tracking-tight text-primary shrink-0">
-                Noti<span className="text-accent">Proof</span>
-              </Link>
-
-              {/* Business switcher (desktop) — left of nav */}
-              <div className="hidden xl:block">
-                <BusinessSwitcher />
-              </div>
-
-              <Separator orientation="vertical" className="hidden xl:block h-6" />
-
-              {/* Desktop nav */}
-              <nav className="hidden xl:flex items-center gap-1">
-                {nav.map(({ to, label, icon: Icon }) => (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    title={label}
-                    aria-label={label}
-                    className={({ isActive }) =>
-                      `flex items-center gap-2 px-2.5 py-2 rounded-md text-sm font-medium transition-colors ${
-                        isActive ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-                      }`
-                    }
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span className="hidden 2xl:inline">{label}</span>
-                  </NavLink>
-                ))}
-              </nav>
-            </div>
-
-            {/* Right cluster: admin shortcut + bell + avatar */}
+      <SidebarProvider defaultOpen>
+        <MainSidebar onSignOut={handleSignOut} />
+        <SidebarInset className="min-w-0">
+          <ImpersonationBanner />
+          <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between border-b bg-card px-3 md:px-4">
+            <SidebarTrigger className="h-9 w-9" />
             <div className="flex items-center gap-1">
-              {profile?.is_admin && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate("/admin")}
-                  className="hidden sm:flex gap-1.5 text-amber-600 hover:text-amber-700 hover:bg-amber-500/10"
-                  aria-label="Open Admin Console"
-                  title="Open Admin Console"
-                >
-                  <Shield className="h-4 w-4" />
-                  <span className="hidden 2xl:inline text-sm font-medium">Admin</span>
-                </Button>
-              )}
               <NotificationBell />
               <UserAvatarMenu onSignOut={handleSignOut} />
             </div>
-          </div>
-        </header>
-        <main className="flex-1 container mx-auto px-4 py-8">
-          <Outlet />
-        </main>
-      </div>
+          </header>
+          <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-6 md:px-8 md:py-8">
+            <Outlet />
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
     </ProtectedRoute>
   );
 }
