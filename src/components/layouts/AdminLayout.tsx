@@ -2,7 +2,6 @@ import { Outlet, Link, NavLink, useNavigate } from "react-router-dom";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIdleLogout } from "@/hooks/useIdleLogout";
-import { Button } from "@/components/ui/button";
 import { ImpersonationBanner } from "./ImpersonationBanner";
 import {
   LayoutDashboard,
@@ -100,54 +99,6 @@ export function AdminLayout() {
       </Sidebar>
     );
   };
-
-  const LegacyNavLinks = ({ onNavigate }: { onNavigate?: () => void }) => (
-    <>
-      {adminNav.map(({ to, label, icon: Icon }) => (
-        <NavLink
-          key={to}
-          to={to}
-          onClick={onNavigate}
-          className={({ isActive }) =>
-            `flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
-              isActive ? "bg-sidebar-accent" : "hover:bg-sidebar-accent/60"
-            }`
-          }
-        >
-          <Icon className="h-4 w-4" />
-          {label}
-        </NavLink>
-      ))}
-    </>
-  );
-
-  const SidebarFooter = ({ onNavigate }: { onNavigate?: () => void }) => (
-    <div className="p-4 border-t border-sidebar-border space-y-1">
-      <div className="px-3 py-2 text-xs opacity-70 truncate">{profile?.email}</div>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
-        onClick={() => {
-          onNavigate?.();
-          navigate("/dashboard");
-        }}
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" /> Back to app
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
-        onClick={async () => {
-          onNavigate?.();
-          await handleSignOut();
-        }}
-      >
-        <LogOut className="h-4 w-4 mr-2" /> Sign out
-      </Button>
-    </div>
-  );
 
   return (
     <AdminRoute>
