@@ -11,6 +11,8 @@
     --card: 0 0% 100%;
     --card-foreground: 217 60% 14%;
 
+    --brand-surface: 0 0% 100%;
+
     --popover: 0 0% 100%;
     --popover-foreground: 217 60% 14%;
 
@@ -65,6 +67,7 @@
     --foreground: 210 40% 98%;
     --card: 217 50% 12%;
     --card-foreground: 210 40% 98%;
+    --brand-surface: 0 0% 100%;
     --popover: 217 50% 12%;
     --popover-foreground: 210 40% 98%;
     --primary: 199 89% 48%;

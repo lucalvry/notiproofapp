@@ -267,8 +267,8 @@ function MainSidebar({ onSignOut }: { onSignOut: () => void }) {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border p-3">
-        <Link to="/dashboard" onClick={closeMobile} className="flex h-9 items-center overflow-hidden px-1">
+      <SidebarHeader className="border-b border-sidebar-border p-3 group-data-[collapsible=icon]:p-2">
+        <Link to="/dashboard" onClick={closeMobile} className="flex h-10 w-full items-center overflow-hidden group-data-[collapsible=icon]:h-8">
           <NotiProofBrand variant="sidebar" />
         </Link>
         <BusinessSwitcher />
