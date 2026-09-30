@@ -1,3 +1,4 @@
+import { authErrorMessage } from "@/lib/auth-error";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -129,7 +130,7 @@ export default function Login() {
     });
     setLoading(false);
     if (error) {
-      toast({ title: "Sign in failed", description: error.message, variant: "destructive" });
+      toast({ title: "Sign in failed", description: authErrorMessage(error), variant: "destructive" });
       return;
     }
     if (data.user) await handlePostAuth(data.user.id);

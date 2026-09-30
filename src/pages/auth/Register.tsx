@@ -1,3 +1,4 @@
+import { authErrorMessage } from "@/lib/auth-error";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -106,7 +107,7 @@ export default function Register() {
     });
     setLoading(false);
     if (error) {
-      toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
+      toast({ title: "Sign up failed", description: authErrorMessage(error), variant: "destructive" });
       return;
     }
     if (data.session && data.user) {
