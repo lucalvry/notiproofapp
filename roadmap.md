@@ -12,3 +12,8 @@
 - [x] Generate widget snippets from the stable app.notiproof.xyz address.
 - [x] Replace lucalvry.com with notiproof.xyz as the approved website, as selected.
 - [ ] Add the corrected widget snippet to the separately managed notiproof.xyz website.
+- [x] Audit report v2: compare uploaded spec documents with the build; research ChatGPT/Claude/MCP.
+- [x] Required sign-up questions (reason + source with follow-ups) and admin view.
+- [x] Referral program: links, 20% recurring commission from Stripe, refunds reverse, payouts page and admin mark-paid.
+- [ ] Add `charge.refunded` to the Stripe webhook events in the Stripe dashboard (needs the user's Stripe access).
+- [ ] MCP server for ChatGPT/Claude (needs a hosting decision: Lovable Cloud or separate deployment).
