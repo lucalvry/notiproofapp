@@ -9,6 +9,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { rateLimit, tooMany, callerIp } from "../_shared/rate-limit.ts";
 import { captureEdgeError } from "../_shared/sentry.ts";
+import { handleReferralEvent } from "../_shared/referral-commission.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
