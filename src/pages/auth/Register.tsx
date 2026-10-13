@@ -13,6 +13,10 @@ import { appRedirect } from "@/lib/app-url";
 import { registerSchema, parseOrError } from "@/lib/validation";
 import { Check, X, Loader2 } from "lucide-react";
 import { PasswordInput } from "@/components/auth/PasswordInput";
+import { AttributionFields } from "@/components/auth/AttributionFields";
+import { attributionError, emptyAttribution, savePendingAttribution, type AttributionAnswers } from "@/lib/attribution";
+import { getReferralCode } from "@/lib/referrals";
+import { submitPendingAttribution } from "@/components/auth/AttributionGate";
 
 function scorePassword(pw: string) {
   let score = 0;
@@ -47,10 +51,25 @@ export default function Register() {
   const [searchParams] = useSearchParams();
   const inviteToken = searchParams.get("invite");
   const { toast } = useToast();
+  const [attribution, setAttribution] = useState<AttributionAnswers>(emptyAttribution);
+  const [referredBy, setReferredBy] = useState<string | null>(null);
 
   useEffect(() => {
     if (inviteToken) sessionStorage.setItem("notiproof.invite_token", inviteToken);
   }, [inviteToken]);
+
+  useEffect(() => {
+    const code = getReferralCode();
+    if (!code) return;
+    supabase.rpc("referrer_display_name" as never, { _code: code } as never).then(({ data }) => {
+      if (typeof data === "string" && data) {
+        setReferredBy(data);
+        setAttribution((a) => ({ ...a, source: "referral", sourceDetail: `Referral link (${data})` }));
+      }
+    });
+  }, []);
+
+  const attributionMissing = attributionError(attribution);
 
   const score = useMemo(() => scorePassword(password), [password]);
   const strongEnough = score >= 2 && password.length >= 8;
