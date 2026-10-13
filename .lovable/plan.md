@@ -15,7 +15,7 @@ Seven email senders still use Brevo: testimonial requests, reminders, test email
 - Sender: `NotiProof <noreply@notiproof.xyz>`, or the business's name with that address.
 - Use the Resend key already saved in your Supabase (`RESEND_API_KEY`). No new key needed. Before switching, a quick check confirms the key is readable and `notiproof.xyz` is verified in Resend. If either check fails, I'll tell you exactly what's wrong instead of asking for a new key.
 - Delete Brevo completely: its code, settings and messages, from all seven senders.
-- Also add `charge.refunded`-style error reporting: a failed send shows Resend's real reason to the user.
+- If an email fails to send, the screen shows Resend's real reason to the user.
 - Then send a test of each email type.
 - Also tidy the last leftover `.com` addresses, kept only so old links still work.
 
