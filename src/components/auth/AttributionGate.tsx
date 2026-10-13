@@ -68,25 +68,50 @@ export function AttributionGate() {
   }, [user, profile?.is_admin]);
 
   const missing = attributionError(answers);
+  const [failed, setFailed] = useState<string | null>(null);
   const save = async () => {
     if (missing) return;
     setSaving(true);
-    const ok = await record(answers, getReferralCode());
+    setFailed(null);
+    const { error } = await supabase.rpc("record_signup_attribution" as never, {
+      _reason: answers.reason,
+      _reason_other: answers.reasonOther || null,
+      _source: answers.source,
+      _source_detail: answers.sourceDetail || null,
+      _referral_code: getReferralCode(),
+    } as never);
     setSaving(false);
-    if (ok) setOpen(false);
+    if (error) {
+      setFailed("We couldn't save your answers. Please try again.");
+      return;
+    }
+    clearPendingAttribution();
+    clearReferralCode();
+    setOpen(false);
   };
 
   return (
     <Dialog open={open}>
-      <DialogContent className="[&>button]:hidden" onEscapeKeyDown={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
+      <DialogContent
+        className="flex max-h-[90vh] flex-col gap-4 overflow-hidden [&>button]:hidden"
+        onEscapeKeyDown={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Two quick questions</DialogTitle>
           <DialogDescription>This helps us build what you need and thank the people who sent you.</DialogDescription>
         </DialogHeader>
-        <AttributionFields value={answers} onChange={setAnswers} referredBy={referredBy} />
-        <Button onClick={save} disabled={!!missing || saving} className="w-full">
-          {saving ? "Saving..." : "Continue"}
-        </Button>
+        <div className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">
+          <AttributionFields value={answers} onChange={setAnswers} referredBy={referredBy} />
+        </div>
+        <div className="shrink-0 space-y-2 border-t pt-4">
+          <Button onClick={save} disabled={!!missing || saving} className="w-full">
+            {saving ? "Saving..." : "Submit answers"}
+          </Button>
+          {(failed || missing) && (
+            <p className={`text-center text-sm ${failed ? "text-destructive" : "text-muted-foreground"}`}>{failed ?? missing}</p>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
