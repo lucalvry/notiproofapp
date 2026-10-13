@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Building2,
   HeartPulse,
+  Gift,
   ShieldAlert,
   LogOut,
   ArrowLeft,
