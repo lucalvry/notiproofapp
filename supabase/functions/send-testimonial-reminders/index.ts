@@ -5,9 +5,10 @@
 //   - reminder_sent_at IS NULL
 //   - sent_at < now() - 3 days
 //   - expires_at > now() + 2 days
-// Sends the per-business `reminder` email template via Brevo and marks
+// Sends the per-business `reminder` email template via Resend and marks
 // reminder_sent_at = now(). Limit 200 per run.
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { emailConfigured, sendEmail } from "../_shared/email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,10 +18,7 @@ const corsHeaders = {
 
 const SERVICE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
-const SENDER_EMAIL = Deno.env.get("BREVO_SENDER_EMAIL") ?? "noreply@notiproof.xyz";
-const SENDER_NAME_FALLBACK = Deno.env.get("BREVO_SENDER_NAME") ?? "NotiProof";
-const APP_URL = (Deno.env.get("APP_URL") ?? "https://notiproof.xyz").replace(/\/+$/, "");
+const APP_URL = (Deno.env.get("APP_URL") ?? "https://app.notiproof.xyz").replace(/\/+$/, "");
 
 const admin = createClient(SERVICE_URL, SERVICE_KEY);
 
@@ -46,7 +44,7 @@ function json(body: unknown, status = 200) {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  if (!BREVO_API_KEY) return json({ error: "BREVO_API_KEY not set" }, 500);
+  if (!emailConfigured()) return json({ error: "RESEND_API_KEY not set" }, 500);
 
   const now = new Date();
   const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString();
@@ -97,24 +95,16 @@ Deno.serve(async (req) => {
       .replace(/\n/g, "<br>");
 
     try {
-      const resp = await fetch("https://api.brevo.com/v3/smtp/email", {
-        method: "POST",
-        headers: {
-          "api-key": BREVO_API_KEY,
-          "content-type": "application/json",
-          "accept": "application/json",
-        },
-        body: JSON.stringify({
-          sender: { email: SENDER_EMAIL, name: biz?.name?.trim() || SENDER_NAME_FALLBACK },
-          to: [{ email: r.recipient_email, name: r.recipient_name ?? undefined }],
-          subject: renderedSubject,
-          htmlContent: `<div style="font-family:system-ui,sans-serif;color:#1a1a1a;font-size:15px;line-height:1.6">${htmlBody}<div style="margin-top:24px;padding-top:16px;border-top:1px solid #eaeaea;font-size:13px;color:#666"><a href="https://notiproof.xyz/watch/customer" style="color:#FF6B4A;text-decoration:none">▶ Not sure what to say? Watch this 60-second guide</a></div></div>`,
-          textContent: renderedBody,
-        }),
+      const resp = await sendEmail({
+        to: { email: r.recipient_email, name: r.recipient_name },
+        subject: renderedSubject,
+        fromName: biz?.name,
+        html: `<div style="font-family:system-ui,sans-serif;color:#1a1a1a;font-size:15px;line-height:1.6">${htmlBody}<div style="margin-top:24px;padding-top:16px;border-top:1px solid #eaeaea;font-size:13px;color:#666"><a href="https://notiproof.xyz/watch/customer" style="color:#FF6B4A;text-decoration:none">▶ Not sure what to say? Watch this 60-second guide</a></div></div>`,
+        text: renderedBody,
       });
       if (!resp.ok) {
         failed++;
-        console.error("Brevo reminder failed", r.id, resp.status, await resp.text());
+        console.error("reminder failed", r.id, resp.error);
         continue;
       }
       await admin

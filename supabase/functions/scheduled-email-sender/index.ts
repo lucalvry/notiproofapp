@@ -45,18 +45,10 @@ function renderEmail(opts: {
   return { subject, html, text };
 }
 
-async function sendBrevo(apiKey: string, fromEmail: string, fromName: string, to: { email: string; name?: string }, subject: string, html: string, text: string) {
-  const res = await fetch(BREVO_URL, {
-    method: 'POST',
-    headers: { 'api-key': apiKey, 'content-type': 'application/json', accept: 'application/json' },
-    body: JSON.stringify({
-      sender: { email: fromEmail, name: fromName },
-      to: [to],
-      subject, htmlContent: html, textContent: text,
-    }),
-  });
-  if (!res.ok) throw new Error(`Brevo ${res.status}: ${await res.text()}`);
-  return res.json();
+async function deliver(fromName: string, to: { email: string; name?: string }, subject: string, html: string, text: string) {
+  const r = await sendEmail({ to, subject, html, text, fromName });
+  if (!r.ok) throw new Error(r.error);
+  return r;
 }
 
 Deno.serve(async (req) => {
@@ -69,12 +61,9 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const apiKey = Deno.env.get('BREVO_API_KEY');
-    if (!apiKey) throw new Error('BREVO_API_KEY not configured');
+    if (!emailConfigured()) throw new Error('RESEND_API_KEY not configured');
 
-    const appUrl = (Deno.env.get('APP_URL') || '').replace(/\/$/, '');
-    const fromEmail = Deno.env.get('FROM_EMAIL') || 'noreply@notiproof.app';
-    const fromName = Deno.env.get('FROM_NAME') || 'NotiProof';
+    const appUrl = (Deno.env.get('APP_URL') || 'https://app.notiproof.xyz').replace(/\/$/, '');
 
     const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
 

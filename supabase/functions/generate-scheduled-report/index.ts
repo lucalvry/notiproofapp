@@ -1,18 +1,16 @@
 // EF-08: Generates and emails scheduled cross-client agency reports.
 // Triggered by pg_cron daily at 06:00 UTC (or manually with x-internal-secret).
 // For each due scheduled_reports row: aggregates per-client metrics, optionally
-// calls EF-06 for AI recommendations, renders HTML, sends via Brevo, advances next_run_at.
+// calls EF-06 for AI recommendations, renders HTML, sends via Resend, advances next_run_at.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { emailConfigured, sendEmail } from "../_shared/email.ts";
 
 const SERVICE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
-const SENDER_EMAIL = Deno.env.get("BREVO_SENDER_EMAIL") ?? "noreply@notiproof.xyz";
-const SENDER_NAME = Deno.env.get("BREVO_SENDER_NAME") ?? "NotiProof";
 const INTERNAL_SECRET = Deno.env.get("INTERNAL_TRIGGER_SECRET");
-const APP_URL = (Deno.env.get("APP_URL") ?? "https://notiproof.xyz").replace(/\/+$/, "");
+const APP_URL = (Deno.env.get("APP_URL") ?? "https://app.notiproof.xyz").replace(/\/+$/, "");
 
 const admin = createClient(SERVICE_URL, SERVICE_KEY);
 
@@ -167,21 +165,10 @@ async function processOne(reportId: string) {
   // Send to each recipient
   const recipients: string[] = (report.send_to ?? []).filter(Boolean);
   let sent = 0;
-  if (BREVO_API_KEY && recipients.length > 0) {
+  if (emailConfigured() && recipients.length > 0) {
     for (const email of recipients) {
-      const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-        method: "POST",
-        headers: { "api-key": BREVO_API_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sender: { email: SENDER_EMAIL, name: agency.name || SENDER_NAME },
-          to: [{ email }],
-          subject: `${agency.name} — client portfolio report`,
-          htmlContent: html,
-        }),
-      });
-      const txt = await res.text();
-      if (res.ok) sent += 1;
-      else console.error("brevo send failed", res.status, txt);
+      const r = await sendEmail({ to: { email }, subject: `${agency.name} — client portfolio report`, html, fromName: agency.name });
+      if (r.ok) sent += 1;
     }
   }
 
