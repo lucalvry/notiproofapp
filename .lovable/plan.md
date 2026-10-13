@@ -29,6 +29,13 @@ One downloadable report covering everything built so far, its status, what is st
 - Click through the public pages and the sign-up flow in a test browser.
 - Make no changes to the app. Fixes, including removing the internal codes, come after you review the report.
 
+## Added sections
+13. **Showcasing proofs, start to finish**: the full journey from sign-up to proofs showing on a website, with every screen named.
+14. **Testimonial collection flow**: request, email, collection page, text and video submission, approval, publishing. Each step gets a status.
+15. **Display formats**: which formats exist and work (popup, banner, inline, wall, carousel, marquee, masonry/grid, avatar row, video hero, logo strip, top bar, floating badge, slider). Covers where users find them in the app, whether they must rebuild a widget each time or can pick from a shared proof library, and whether a full testimonial page or landing-page embed is possible. Includes how text and video proofs show together.
+16. **Connecting AI assistants (Claude, ChatGPT, MCP)**: what exists today (no AI-assistant connection was found on a first search; only a Zapier webhook). Covers what such a connection could do in both directions, what data we would share, what value each side gets, how ready the system is, and what it would take to build.
+17. **Original MVP**: search the project for the original MVP or spec. The build labels (ONB-01, WID-02, and so on) point to a spec that isn't in the project. If it's found, the report links to it and compares it with what was built. If not, the report rebuilds the spec list from those labels and asks you for the original document.
+
 ## Deliverable
 `/mnt/documents/NotiProof_Audit_Report.md`, also available as a PDF, with a short summary in chat.
 
