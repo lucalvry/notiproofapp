@@ -1,10 +1,10 @@
 // Authenticated endpoint: sends the testimonial-request email for an existing
 // testimonial_requests row, using the business's saved Email Settings template.
-// Email delivery: Brevo Transactional Email API (https://api.brevo.com/v3/smtp/email).
-// Requires BREVO_API_KEY secret. Sender address must be verified in Brevo.
+// Email delivery: Resend via _shared/email.ts (RESEND_API_KEY secret).
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { rateLimit, tooMany } from "../_shared/rate-limit.ts";
 import { uuidSchema } from "../_shared/validation.ts";
+import { emailConfigured, sendEmail } from "../_shared/email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,11 +15,8 @@ const corsHeaders = {
 const SERVICE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
-const SENDER_EMAIL = Deno.env.get("BREVO_SENDER_EMAIL") ?? "noreply@notiproof.xyz";
-const SENDER_NAME_FALLBACK = Deno.env.get("BREVO_SENDER_NAME") ?? "NotiProof";
 const APP_URL = Deno.env.get("APP_URL");
-const FALLBACK_APP_URL = "https://notiproof.xyz";
+const FALLBACK_APP_URL = "https://app.notiproof.xyz";
 const PREVIEW_HOST_SUFFIXES = ["lovableproject.com", "lovable.app", "lovable.dev"];
 
 function isPreviewOrigin(origin: string): boolean {
@@ -129,36 +126,18 @@ Deno.serve(async (req) => {
       .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#FF6B4A">$1</a>')
       .replace(/\n/g, "<br>");
 
-    if (!BREVO_API_KEY) {
-      return json({ error: "BREVO_API_KEY is not configured" }, 500);
+    if (!emailConfigured()) {
+      return json({ error: "Email sending is not configured (RESEND_API_KEY missing)" }, 500);
     }
 
-    const senderName = biz?.name?.trim() || SENDER_NAME_FALLBACK;
-
-    const brevoResp = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "api-key": BREVO_API_KEY,
-        "content-type": "application/json",
-        "accept": "application/json",
-      },
-      body: JSON.stringify({
-        sender: { email: SENDER_EMAIL, name: senderName },
-        to: [{ email: tr.recipient_email, name: tr.recipient_name ?? undefined }],
-        subject: renderedSubject,
-        htmlContent: `<div style="font-family:system-ui,sans-serif;color:#1a1a1a;font-size:15px;line-height:1.6">${htmlBody}<div style="margin-top:24px;padding-top:16px;border-top:1px solid #eaeaea;font-size:13px;color:#666"><a href="https://notiproof.xyz/watch/customer" style="color:#FF6B4A;text-decoration:none">▶ Not sure what to say? Watch this 60-second guide</a></div></div>`,
-        textContent: renderedBody,
-      }),
+    const sent = await sendEmail({
+      to: { email: tr.recipient_email, name: tr.recipient_name },
+      subject: renderedSubject,
+      fromName: biz?.name,
+      html: `<div style="font-family:system-ui,sans-serif;color:#1a1a1a;font-size:15px;line-height:1.6">${htmlBody}<div style="margin-top:24px;padding-top:16px;border-top:1px solid #eaeaea;font-size:13px;color:#666"><a href="https://app.notiproof.xyz/watch/customer" style="color:#FF6B4A;text-decoration:none">▶ Not sure what to say? Watch this 60-second guide</a></div></div>`,
+      text: renderedBody,
     });
-
-    if (!brevoResp.ok) {
-      const errText = await brevoResp.text();
-      console.error("Brevo error", brevoResp.status, errText);
-      let parsed: any = null;
-      try { parsed = JSON.parse(errText); } catch { /* keep raw */ }
-      const message = parsed?.message || parsed?.code || errText || `HTTP ${brevoResp.status}`;
-      return json({ error: `Brevo: ${message}`, status: brevoResp.status }, 502);
-    }
+    if (!sent.ok) return json({ error: sent.error, status: sent.status }, 502);
 
     await admin
       .from("testimonial_requests")

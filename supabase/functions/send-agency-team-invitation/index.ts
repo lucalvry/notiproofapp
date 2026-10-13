@@ -6,14 +6,12 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { emailConfigured, sendEmail } from "../_shared/email.ts";
 
 const SERVICE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY");
-const SENDER_EMAIL = Deno.env.get("BREVO_SENDER_EMAIL") ?? "noreply@notiproof.xyz";
-const SENDER_NAME = Deno.env.get("BREVO_SENDER_NAME") ?? "NotiProof";
-const APP_URL = (Deno.env.get("APP_URL") ?? "https://notiproof.xyz").replace(/\/+$/, "");
+const APP_URL = (Deno.env.get("APP_URL") ?? "https://app.notiproof.xyz").replace(/\/+$/, "");
 
 const admin = createClient(SERVICE_URL, SERVICE_KEY);
 
@@ -109,25 +107,11 @@ ${logo}
 </div></body></html>`;
     const text = `${agency.name} invited you to join their NotiProof agency workspace.\n\nAccept: ${acceptUrl}`;
 
-    if (!BREVO_API_KEY) {
-      return json({ ok: true, simulated: true, invitation_id: inv.id, acceptUrl });
+    if (!emailConfigured()) {
+      return json({ error: "Email sending is not configured (RESEND_API_KEY missing)" }, 500);
     }
-
-    const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: { "api-key": BREVO_API_KEY, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sender: { email: SENDER_EMAIL, name: agency.name || SENDER_NAME },
-        to: [{ email: emailRaw }],
-        subject,
-        htmlContent: html,
-        textContent: text,
-      }),
-    });
-    const brevoBody = await brevoRes.text();
-    if (!brevoRes.ok) {
-      return json({ error: "brevo_failed", status: brevoRes.status, body: brevoBody }, 502);
-    }
+    const sent = await sendEmail({ to: { email: emailRaw }, subject, html, text, fromName: agency.name });
+    if (!sent.ok) return json({ error: sent.error, status: sent.status }, 502);
     return json({ ok: true, invitation_id: inv.id, acceptUrl });
   } catch (e) {
     return json({ error: String((e as Error)?.message ?? e) }, 500);
