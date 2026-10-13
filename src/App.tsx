@@ -8,6 +8,10 @@ import { WizardLayout } from "@/components/layouts/WizardLayout";
 import { AdminLayout } from "@/components/layouts/AdminLayout";
 import { Sentry } from "@/lib/sentry";
 import { PostHogPageviewTracker } from "@/components/analytics/PostHogPageviewTracker";
+import { ReferralCapture } from "@/components/referrals/ReferralCapture";
+import { AttributionGate } from "@/components/auth/AttributionGate";
+import ReferralsSettings from "./pages/settings/Referrals";
+import AdminGrowth from "./pages/admin/Growth";
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -106,6 +110,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <PostHogPageviewTracker />
+        <ReferralCapture />
+        <AttributionGate />
         <Sentry.ErrorBoundary
           fallback={({ resetError }) => (
             <div className="min-h-screen flex items-center justify-center p-6 text-center">
