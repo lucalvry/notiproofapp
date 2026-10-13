@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plug, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { INTEGRATION_CATALOG } from "@/lib/integration-catalog";
 
 const db = supabase as any;
 
@@ -61,8 +62,25 @@ export default function IntegrationsTab() {
 
   const broken = health.filter((h) => h.status === "error" || (h.success_rate !== null && h.success_rate < 80));
 
+  const statusLabel = { live: "Live end-to-end", partial: "Partially built", not_built: "Not built" } as const;
+  const countFor = (p: string) => health.filter((h) => h.provider === p).length;
+
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader><CardTitle className="text-base">Build status of every integration</CardTitle></CardHeader>
+        <CardContent className="space-y-1 text-sm">
+          {INTEGRATION_CATALOG.map((c) => (
+            <div key={c.provider} className="flex flex-wrap items-center justify-between gap-2 border-b py-1.5 last:border-0">
+              <div><span className="font-medium">{c.label}</span> <span className="text-xs text-muted-foreground">· {c.kind} · {c.note}</span></div>
+              <div className="flex items-center gap-2">
+                {c.kind === "proof source" && <span className="text-xs text-muted-foreground">{countFor(c.provider)} connected</span>}
+                <Badge variant={c.status === "live" ? "default" : c.status === "partial" ? "secondary" : "outline"}>{statusLabel[c.status]}</Badge>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Stat label="Integrations" value={health.length} icon={Plug} />
         <Stat label="Broken" value={broken.length} tone={broken.length > 0 ? "danger" : "ok"} />
