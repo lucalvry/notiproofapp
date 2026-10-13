@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
         to: { email: r.recipient_email, name: r.recipient_name },
         subject: renderedSubject,
         fromName: biz?.name,
-        html: `<div style="font-family:system-ui,sans-serif;color:#1a1a1a;font-size:15px;line-height:1.6">${htmlBody}<div style="margin-top:24px;padding-top:16px;border-top:1px solid #eaeaea;font-size:13px;color:#666"><a href="https://notiproof.xyz/watch/customer" style="color:#FF6B4A;text-decoration:none">▶ Not sure what to say? Watch this 60-second guide</a></div></div>`,
+        html: `<div style="font-family:system-ui,sans-serif;color:#1a1a1a;font-size:15px;line-height:1.6">${htmlBody}<div style="margin-top:24px;padding-top:16px;border-top:1px solid #eaeaea;font-size:13px;color:#666"><a href="https://app.notiproof.xyz/watch/customer" style="color:#FF6B4A;text-decoration:none">▶ Not sure what to say? Watch this 60-second guide</a></div></div>`,
         text: renderedBody,
       });
       if (!resp.ok) {
