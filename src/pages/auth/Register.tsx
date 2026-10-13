@@ -136,6 +136,7 @@ export default function Register() {
       return;
     }
     if (data.session && data.user) {
+      await submitPendingAttribution(data.user.user_metadata);
       // Try to accept invite immediately if present
       const pendingInvite = sessionStorage.getItem("notiproof.invite_token");
       if (pendingInvite) {
@@ -163,6 +164,7 @@ export default function Register() {
     try {
       localStorage.setItem("notiproof.terms_accepted_at", new Date().toISOString());
     } catch {}
+    if (!attributionError(attribution)) savePendingAttribution(attribution);
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: appRedirect("/onboarding/connect") },
@@ -269,6 +271,8 @@ export default function Register() {
           )}
         </div>
 
+        <AttributionFields value={attribution} onChange={setAttribution} referredBy={referredBy} />
+
         <div className="flex items-start gap-2 rounded-md border bg-muted/30 p-3">
           <Checkbox
             id="terms"
@@ -293,7 +297,7 @@ export default function Register() {
         <Button
           type="submit"
           className="w-full"
-          disabled={loading || emailTaken === true || !strongEnough || !passwordsMatch || !agreedToTerms}
+          disabled={loading || emailTaken === true || !strongEnough || !passwordsMatch || !agreedToTerms || !!attributionMissing}
         >
           {loading ? "Creating account..." : "Create account"}
         </Button>
