@@ -236,6 +236,7 @@ const App = () => (
               <Route path="/settings/channels" element={<Navigate to="/content/channels" replace />} />
               <Route path="/settings/content" element={<ContentPreferences />} />
               <Route path="/settings/billing" element={<BillingSettings />} />
+              <Route path="/settings/referrals" element={<ReferralsSettings />} />
             </Route>
           </Route>
 
@@ -247,6 +248,7 @@ const App = () => (
             <Route path="/admin/businesses/:id" element={<BusinessDetail />} />
             <Route path="/admin/moderation" element={<Moderation />} />
             <Route path="/admin/health" element={<Health />} />
+            <Route path="/admin/growth" element={<AdminGrowth />} />
             <Route path="/admin/system" element={<Navigate to="/admin/dashboard?tab=system" replace />} />
           </Route>
 
