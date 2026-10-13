@@ -1,8 +1,7 @@
-// EF-04: pg_cron-driven sender for scheduled testimonial requests + reminders via Brevo
+// EF-04: pg_cron-driven sender for scheduled testimonial requests + reminders via Resend
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { corsHeaders } from '../_shared/cors.ts';
-
-const BREVO_URL = 'https://api.brevo.com/v3/smtp/email';
+import { emailConfigured, sendEmail } from '../_shared/email.ts';
 
 function escapeHtml(s: string): string {
   return (s || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
@@ -91,7 +90,7 @@ Deno.serve(async (req) => {
         ]);
         const collectionUrl = `${appUrl}/c/${r.token}`;
         const { subject, html, text } = renderEmail({ isReminder: false, business: biz, request: r, collectionUrl, campaign });
-        await sendBrevo(apiKey, fromEmail, fromName, { email: r.recipient_email, name: r.recipient_name || undefined }, subject, html, text);
+        await deliver(biz?.name || 'NotiProof', { email: r.recipient_email, name: r.recipient_name || undefined }, subject, html, text);
         await admin.from('testimonial_requests').update({ status: 'sent', sent_at: new Date().toISOString() }).eq('id', r.id);
         sent++;
       } catch (e: any) {
@@ -125,7 +124,7 @@ Deno.serve(async (req) => {
         ]);
         const collectionUrl = `${appUrl}/c/${r.token}`;
         const { subject, html, text } = renderEmail({ isReminder: true, business: biz, request: r, collectionUrl, campaign });
-        await sendBrevo(apiKey, fromEmail, fromName, { email: r.recipient_email, name: r.recipient_name || undefined }, subject, html, text);
+        await deliver(biz?.name || 'NotiProof', { email: r.recipient_email, name: r.recipient_name || undefined }, subject, html, text);
         await admin.from('testimonial_requests').update({ reminder_sent_at: new Date().toISOString() }).eq('id', r.id);
         reminded++;
       } catch (e: any) {
