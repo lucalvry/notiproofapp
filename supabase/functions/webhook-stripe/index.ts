@@ -150,6 +150,12 @@ async function enrichWithStripeProducts(
   if (error) console.error("stripe proof_product_items insert failed", error);
 }
 
+const REFERRAL_EVENT_TYPES = new Set([
+  "invoice.payment_succeeded",
+  "charge.refunded",
+  "customer.subscription.deleted",
+]);
+
 const BILLING_EVENT_TYPES = new Set([
   "checkout.session.completed",
   "customer.subscription.created",
@@ -275,6 +281,16 @@ Deno.serve(async (req) => {
     } catch (e) {
       console.error("billing event error", e);
       captureEdgeError(e, req, { function_name: "webhook-stripe", extra: { phase: "billing", event_type: event.type } });
+    }
+  }
+
+  // 1b) Referral commissions — platform billing only (not customer store integrations).
+  if (!integrationId && event.type && REFERRAL_EVENT_TYPES.has(event.type)) {
+    try {
+      await handleReferralEvent(supabase, event as { type: string; data: { object: Record<string, unknown> } });
+    } catch (e) {
+      console.error("referral event error", e);
+      captureEdgeError(e, req, { function_name: "webhook-stripe", extra: { phase: "referral", event_type: event.type } });
     }
   }
 
