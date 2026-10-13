@@ -1510,6 +1510,143 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_codes: {
+        Row: {
+          clicks: number
+          code: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          clicks?: number
+          code: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          clicks?: number
+          code?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referral_commissions: {
+        Row: {
+          amount_paid_cents: number
+          commission_cents: number
+          created_at: string
+          currency: string
+          id: string
+          paid_out_at: string | null
+          referral_id: string
+          referrer_user_id: string
+          reversed_at: string | null
+          status: string
+          stripe_charge_id: string | null
+          stripe_invoice_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_paid_cents: number
+          commission_cents: number
+          created_at?: string
+          currency?: string
+          id?: string
+          paid_out_at?: string | null
+          referral_id: string
+          referrer_user_id: string
+          reversed_at?: string | null
+          status?: string
+          stripe_charge_id?: string | null
+          stripe_invoice_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_paid_cents?: number
+          commission_cents?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          paid_out_at?: string | null
+          referral_id?: string
+          referrer_user_id?: string
+          reversed_at?: string | null
+          status?: string
+          stripe_charge_id?: string | null
+          stripe_invoice_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_commissions_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_payout_details: {
+        Row: {
+          created_at: string
+          details: string
+          method: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          details: string
+          method?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          details?: string
+          method?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          churned_at: string | null
+          code: string
+          created_at: string
+          first_paid_at: string | null
+          id: string
+          referred_user_id: string
+          referrer_user_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          churned_at?: string | null
+          code: string
+          created_at?: string
+          first_paid_at?: string | null
+          id?: string
+          referred_user_id: string
+          referrer_user_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          churned_at?: string | null
+          code?: string
+          created_at?: string
+          first_paid_at?: string | null
+          id?: string
+          referred_user_id?: string
+          referrer_user_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       scheduled_jobs: {
         Row: {
           attempts: number
@@ -1614,6 +1751,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      signup_attribution: {
+        Row: {
+          created_at: string
+          id: string
+          reason: string
+          reason_other: string | null
+          referral_code: string | null
+          source: string
+          source_detail: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reason: string
+          reason_other?: string | null
+          referral_code?: string | null
+          source: string
+          source_detail?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reason?: string
+          reason_other?: string | null
+          referral_code?: string | null
+          source?: string
+          source_detail?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       system_alerts: {
         Row: {
@@ -2079,6 +2249,15 @@ export type Database = {
         Returns: boolean
       }
       admin_resolve_alert: { Args: { _alert_id: string }; Returns: boolean }
+      admin_signup_sources: {
+        Args: never
+        Returns: {
+          reason: string
+          signups: number
+          source: string
+          source_detail: string
+        }[]
+      }
       business_id_for_collection_token: {
         Args: { _token: string }
         Returns: string
@@ -2151,6 +2330,7 @@ export type Database = {
           status: Database["public"]["Enums"]["testimonial_request_status"]
         }[]
       }
+      get_my_referral_code: { Args: never; Returns: string }
       get_testimonial_request: {
         Args: { _token: string }
         Returns: {
@@ -2233,6 +2413,17 @@ export type Database = {
           team_seats_included: number
         }[]
       }
+      record_signup_attribution: {
+        Args: {
+          _reason: string
+          _reason_other: string
+          _referral_code: string
+          _source: string
+          _source_detail: string
+        }
+        Returns: boolean
+      }
+      referrer_display_name: { Args: { _code: string }; Returns: string }
       retry_failed_product_image_enrichment: { Args: never; Returns: number }
       submit_testimonial_request:
         | {
@@ -2278,6 +2469,7 @@ export type Database = {
             }
             Returns: string
           }
+      track_referral_click: { Args: { _code: string }; Returns: boolean }
       update_proof_media_metadata: {
         Args: { _bytes: number; _duration_seconds: number; _proof_id: string }
         Returns: boolean

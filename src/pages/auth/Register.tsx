@@ -13,6 +13,10 @@ import { appRedirect } from "@/lib/app-url";
 import { registerSchema, parseOrError } from "@/lib/validation";
 import { Check, X, Loader2 } from "lucide-react";
 import { PasswordInput } from "@/components/auth/PasswordInput";
+import { AttributionFields } from "@/components/auth/AttributionFields";
+import { attributionError, emptyAttribution, savePendingAttribution, type AttributionAnswers } from "@/lib/attribution";
+import { getReferralCode } from "@/lib/referrals";
+import { submitPendingAttribution } from "@/components/auth/AttributionGate";
 
 function scorePassword(pw: string) {
   let score = 0;
@@ -47,10 +51,25 @@ export default function Register() {
   const [searchParams] = useSearchParams();
   const inviteToken = searchParams.get("invite");
   const { toast } = useToast();
+  const [attribution, setAttribution] = useState<AttributionAnswers>(emptyAttribution);
+  const [referredBy, setReferredBy] = useState<string | null>(null);
 
   useEffect(() => {
     if (inviteToken) sessionStorage.setItem("notiproof.invite_token", inviteToken);
   }, [inviteToken]);
+
+  useEffect(() => {
+    const code = getReferralCode();
+    if (!code) return;
+    supabase.rpc("referrer_display_name" as never, { _code: code } as never).then(({ data }) => {
+      if (typeof data === "string" && data) {
+        setReferredBy(data);
+        setAttribution((a) => ({ ...a, source: "referral", sourceDetail: `Referral link (${data})` }));
+      }
+    });
+  }, []);
+
+  const attributionMissing = attributionError(attribution);
 
   const score = useMemo(() => scorePassword(password), [password]);
   const strongEnough = score >= 2 && password.length >= 8;
@@ -90,6 +109,11 @@ export default function Register() {
       toast({ title: "Choose a stronger password", description: "Use at least 8 characters with letters and numbers.", variant: "destructive" });
       return;
     }
+    if (attributionMissing) {
+      toast({ title: "A couple of quick questions", description: attributionMissing, variant: "destructive" });
+      return;
+    }
+    savePendingAttribution(attribution);
     setLoading(true);
     const consentTimestamp = new Date().toISOString();
     const { data, error } = await supabase.auth.signUp({
@@ -102,6 +126,7 @@ export default function Register() {
           business_name: parsed.data.businessName,
           terms_accepted_at: consentTimestamp,
           privacy_accepted_at: consentTimestamp,
+          signup_attribution: { ...attribution, referralCode: getReferralCode() },
         },
       },
     });
@@ -111,6 +136,7 @@ export default function Register() {
       return;
     }
     if (data.session && data.user) {
+      await submitPendingAttribution(data.user.user_metadata);
       // Try to accept invite immediately if present
       const pendingInvite = sessionStorage.getItem("notiproof.invite_token");
       if (pendingInvite) {
@@ -138,6 +164,7 @@ export default function Register() {
     try {
       localStorage.setItem("notiproof.terms_accepted_at", new Date().toISOString());
     } catch {}
+    if (!attributionError(attribution)) savePendingAttribution(attribution);
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: appRedirect("/onboarding/connect") },
@@ -244,6 +271,8 @@ export default function Register() {
           )}
         </div>
 
+        <AttributionFields value={attribution} onChange={setAttribution} referredBy={referredBy} />
+
         <div className="flex items-start gap-2 rounded-md border bg-muted/30 p-3">
           <Checkbox
             id="terms"
@@ -268,7 +297,7 @@ export default function Register() {
         <Button
           type="submit"
           className="w-full"
-          disabled={loading || emailTaken === true || !strongEnough || !passwordsMatch || !agreedToTerms}
+          disabled={loading || emailTaken === true || !strongEnough || !passwordsMatch || !agreedToTerms || !!attributionMissing}
         >
           {loading ? "Creating account..." : "Create account"}
         </Button>

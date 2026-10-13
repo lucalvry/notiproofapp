@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Building2,
   HeartPulse,
+  Gift,
   ShieldAlert,
   LogOut,
   ArrowLeft,
@@ -35,6 +36,7 @@ const adminNav = [
   { to: "/admin/businesses", label: "Businesses", icon: Building2 },
   { to: "/admin/moderation", label: "Moderation", icon: ShieldAlert },
   { to: "/admin/health", label: "Health", icon: HeartPulse },
+  { to: "/admin/growth", label: "Sign-ups & referrals", icon: Gift },
 ];
 
 export function AdminLayout() {

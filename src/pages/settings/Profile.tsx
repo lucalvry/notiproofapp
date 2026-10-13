@@ -39,6 +39,7 @@ const tabs = [
   
   { to: "/settings/content", label: "Content" },
   { to: "/settings/billing", label: "Billing" },
+  { to: "/settings/referrals", label: "Referrals" },
 ];
 
 export function SettingsLayout() {
