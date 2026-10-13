@@ -13,7 +13,9 @@ You were right: the audit missed the email domain problem and overstated LinkedI
 Seven email senders still use Brevo: testimonial requests, reminders, test email, scheduled emails, client invitations, agency team invitations and scheduled reports. Their default sender is already set to `noreply@notiproof.xyz`, but Brevo is only verified for `.com`, so sending fails.
 - Build one shared email sender on Resend and point all seven at it. Remove every Brevo setting.
 - Sender: `NotiProof <noreply@notiproof.xyz>`, or the business's name with that address.
-- **What I need from you:** a Resend account with `notiproof.xyz` verified (Resend gives you DNS records to add), plus its API key. I'll ask for the key securely when building. Your backend is your own Supabase, so the key goes there directly.
+- Use the Resend key already saved in your Supabase (`RESEND_API_KEY`). No new key needed. Before switching, a quick check confirms the key is readable and `notiproof.xyz` is verified in Resend. If either check fails, I'll tell you exactly what's wrong instead of asking for a new key.
+- Delete Brevo completely: its code, settings and messages, from all seven senders.
+- If an email fails to send, the screen shows Resend's real reason to the user.
 - Then send a test of each email type.
 - Also tidy the last leftover `.com` addresses, kept only so old links still work.
 
