@@ -10,6 +10,8 @@ import {
   HeartPulse,
   Gift,
   ShieldAlert,
+  Users,
+  ScrollText,
   LogOut,
   ArrowLeft,
 } from "lucide-react";
@@ -33,10 +35,12 @@ import {
 
 const adminNav = [
   { to: "/admin/dashboard", label: "Overview", icon: LayoutDashboard },
+  { to: "/admin/users", label: "Users", icon: Users },
   { to: "/admin/businesses", label: "Businesses", icon: Building2 },
   { to: "/admin/moderation", label: "Moderation", icon: ShieldAlert },
   { to: "/admin/health", label: "Health", icon: HeartPulse },
   { to: "/admin/growth", label: "Sign-ups & referrals", icon: Gift },
+  { to: "/admin/audit", label: "Audit log", icon: ScrollText },
 ];
 
 export function AdminLayout() {

@@ -57,6 +57,7 @@ export default function AdminGrowth() {
   const markPaid = async (o: Owed) => {
     const { error } = await supabase.from("referral_commissions" as never)
       .update({ status: "paid", paid_out_at: new Date().toISOString() } as never).in("id", o.ids);
+    if (!error) await supabase.rpc("log_admin_action" as never, { _business_id: null, _action: "referral_commission_paid", _details: { referrer: o.email, cents: o.total, currency: o.currency, commissions: o.ids.length } } as never);
     toast(error ? { title: "Couldn't update", description: error.message, variant: "destructive" } : { title: "Marked as paid" });
     load();
   };

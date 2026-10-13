@@ -12,6 +12,8 @@ import { ReferralCapture } from "@/components/referrals/ReferralCapture";
 import { AttributionGate } from "@/components/auth/AttributionGate";
 import ReferralsSettings from "./pages/settings/Referrals";
 import AdminGrowth from "./pages/admin/Growth";
+import AdminUsers from "./pages/admin/Users";
+import AdminAuditLog from "./pages/admin/AuditLog";
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -249,6 +251,8 @@ const App = () => (
             <Route path="/admin/moderation" element={<Moderation />} />
             <Route path="/admin/health" element={<Health />} />
             <Route path="/admin/growth" element={<AdminGrowth />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/audit" element={<AdminAuditLog />} />
             <Route path="/admin/system" element={<Navigate to="/admin/dashboard?tab=system" replace />} />
           </Route>
 
