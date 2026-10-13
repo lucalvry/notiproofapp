@@ -35,6 +35,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { BusinessPeopleCards } from "@/components/admin/BusinessPeopleCards";
 import {
   ArrowLeft,
   CalendarClock,
@@ -388,6 +389,7 @@ export default function BusinessDetail() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
+          <BusinessPeopleCards businessId={b.id} businessName={b.name} />
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Stats</CardTitle>

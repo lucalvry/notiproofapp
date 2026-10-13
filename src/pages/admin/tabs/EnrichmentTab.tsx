@@ -98,7 +98,18 @@ export default function EnrichmentTab() {
             <Skeleton className="h-16 w-full" />
           ) : (
             <>
-              <div className="mb-3">Proof media total: <span className="font-semibold">{fmtBytes(storage.proof_media_bytes)}</span></div>
+              <div className="mb-3">Proof media on Bunny CDN: <span className="font-semibold">{fmtBytes(storage.proof_media_bytes)}</span> <span className="text-muted-foreground">({storage.proof_media_files ?? 0} files)</span></div>
+              {storage.by_business?.length > 0 && (
+                <div className="mb-4 divide-y rounded border">
+                  {storage.by_business.map((b: any) => (
+                    <div key={b.business_id} className="flex justify-between p-2 text-xs">
+                      <span className="truncate">{b.name}</span>
+                      <span className="text-muted-foreground">{b.files} files · {fmtBytes(b.bytes)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {storage.buckets?.length > 0 && <div className="mb-1 text-xs text-muted-foreground">Backend storage folders</div>}
               {storage.buckets?.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   {storage.buckets.map((b: any) => (

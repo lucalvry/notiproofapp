@@ -153,10 +153,19 @@ Deno.serve(async (req) => {
     if (updErr) throw updErr;
 
     // Persist media metadata for storage accounting + retention.
-    if (media_url && (typeof media_size_bytes === "number" || typeof media_duration_seconds === "number")) {
+    // If the browser didn't report a size, measure the uploaded file on the CDN.
+    if (media_url) {
+      let bytes: number | null = typeof media_size_bytes === "number" ? Math.floor(media_size_bytes) : null;
+      if (bytes === null) {
+        try {
+          const head = await fetch(String(media_url), { method: "HEAD" });
+          const len = Number(head.headers.get("content-length"));
+          if (head.ok && Number.isFinite(len) && len > 0) bytes = len;
+        } catch { /* best effort */ }
+      }
       await supabase.rpc("update_proof_media_metadata", {
         _proof_id: reqRow.proof_object_id,
-        _bytes: typeof media_size_bytes === "number" ? Math.floor(media_size_bytes) : null,
+        _bytes: bytes,
         _duration_seconds: typeof media_duration_seconds === "number" ? media_duration_seconds : null,
       });
     }

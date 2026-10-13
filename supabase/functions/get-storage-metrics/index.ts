@@ -31,18 +31,31 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Sum proof media sizes (denormalised on proof_objects)
+    // Sum proof media sizes (denormalised on proof_objects). Media lives on Bunny CDN.
     const { data: rows } = await admin
       .from("proof_objects")
-      .select("media_size_bytes")
+      .select("business_id, media_size_bytes")
       .not("media_size_bytes", "is", null)
       .limit(50000);
-    const proofMediaBytes = (rows ?? []).reduce(
-      (a: number, r: any) => a + (Number(r.media_size_bytes) || 0),
-      0,
-    );
+    const perBiz = new Map<string, { bytes: number; files: number }>();
+    let proofMediaBytes = 0;
+    for (const r of (rows ?? []) as { business_id: string; media_size_bytes: number }[]) {
+      const b = Number(r.media_size_bytes) || 0;
+      proofMediaBytes += b;
+      const e = perBiz.get(r.business_id) ?? { bytes: 0, files: 0 };
+      e.bytes += b; e.files += 1; perBiz.set(r.business_id, e);
+    }
+    const ids = [...perBiz.keys()];
+    const { data: names } = ids.length
+      ? await admin.from("businesses").select("id, name").in("id", ids)
+      : { data: [] };
+    const by_business = ids.map((id) => ({
+      business_id: id,
+      name: (names ?? []).find((n: any) => n.id === id)?.name ?? id,
+      ...perBiz.get(id)!,
+    })).sort((a, b) => b.bytes - a.bytes);
 
-    // List buckets and their object counts (size totals not exposed; rough metric)
+    // List buckets and their object counts (backend storage, separate from Bunny)
     const { data: buckets } = await admin.storage.listBuckets();
     const bucketStats: { name: string; objects: number }[] = [];
     for (const b of buckets ?? []) {
@@ -53,6 +66,8 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         proof_media_bytes: proofMediaBytes,
+        proof_media_files: rows?.length ?? 0,
+        by_business,
         buckets: bucketStats,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },

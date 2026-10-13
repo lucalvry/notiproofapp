@@ -58,12 +58,22 @@ export default function Moderation() {
   };
   useEffect(load, []);
 
+  const logModeration = async (ids: string[], status: string) => {
+    const { data: rows } = await db.from("proof_objects").select("id, business_id").in("id", ids);
+    await Promise.all(
+      ((rows ?? []) as { id: string; business_id: string }[]).map((r) =>
+        db.rpc("log_admin_action", { _business_id: r.business_id, _action: `moderation_${status}`, _details: { proof_id: r.id } }),
+      ),
+    );
+  };
+
   const decide = async (id: string, status: ProofStatus, extra: Partial<ProofRow> = {}): Promise<void> => {
     const { error } = await db.from("proof_objects").update({ status, ...extra }).eq("id", id);
     if (error) {
       toast({ title: "Failed", description: error.message, variant: "destructive" });
       return;
     }
+    void logModeration([id], status);
     setItems((s) => s.filter((x) => x.id !== id));
     setOpenId(null);
   };
@@ -75,6 +85,7 @@ export default function Moderation() {
     const { error } = await db.from("proof_objects").update({ status }).in("id", ids);
     setBulkBusy(false);
     if (error) return toast({ title: "Failed", description: error.message, variant: "destructive" });
+    void logModeration(ids, status);
     setItems((s) => s.filter((x) => !selected.has(x.id)));
     setSelected(new Set());
     toast({ title: `${ids.length} item${ids.length === 1 ? "" : "s"} ${status}` });
