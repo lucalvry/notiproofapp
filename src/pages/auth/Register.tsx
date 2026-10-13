@@ -109,6 +109,11 @@ export default function Register() {
       toast({ title: "Choose a stronger password", description: "Use at least 8 characters with letters and numbers.", variant: "destructive" });
       return;
     }
+    if (attributionMissing) {
+      toast({ title: "A couple of quick questions", description: attributionMissing, variant: "destructive" });
+      return;
+    }
+    savePendingAttribution(attribution);
     setLoading(true);
     const consentTimestamp = new Date().toISOString();
     const { data, error } = await supabase.auth.signUp({
@@ -121,6 +126,7 @@ export default function Register() {
           business_name: parsed.data.businessName,
           terms_accepted_at: consentTimestamp,
           privacy_accepted_at: consentTimestamp,
+          signup_attribution: { ...attribution, referralCode: getReferralCode() },
         },
       },
     });
