@@ -63,7 +63,8 @@ export default function Analytics() {
     { value: "7", label: "Last 7 days" },
     { value: "30", label: "Last 30 days" },
     { value: "90", label: "Last 90 days" },
-  ].filter((o) => Number(o.value) <= retentionDays);
+    { value: "365", label: "Last 12 months" },
+  ].map((o) => ({ ...o, locked: Number(o.value) > retentionDays }));
   const [range, setRange] = useState(() => {
     const max = Math.min(30, retentionDays);
     return String(max);
@@ -217,7 +218,9 @@ export default function Analytics() {
           <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             {rangeOptions.map((o) => (
-              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              <SelectItem key={o.value} value={o.value} disabled={o.locked}>
+                {o.label}{o.locked ? " — paid plans" : ""}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>

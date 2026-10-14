@@ -117,10 +117,10 @@ export default function ProfileSettings() {
     toast({ title: "Saved" });
   };
 
-  if (loading || !b) return <Skeleton className="h-64 w-full max-w-2xl" />;
+  if (loading || !b) return <Skeleton className="h-64 w-full" />;
 
   return (
-    <div className="max-w-2xl space-y-4">
+    <div className="w-full space-y-4">
       <ReadOnlyBanner />
       <Card>
         <CardHeader><CardTitle className="text-base">Business profile</CardTitle></CardHeader>

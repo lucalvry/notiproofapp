@@ -69,10 +69,10 @@ export default function ContentPreferences() {
     toast({ title: "Preferences saved" });
   };
 
-  if (loading) return <Skeleton className="h-64 w-full max-w-2xl" />;
+  if (loading) return <Skeleton className="h-64 w-full" />;
 
   return (
-    <div className="max-w-2xl space-y-4">
+    <div className="w-full space-y-4">
       <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">SET-06</div>
       <ReadOnlyBanner />
 

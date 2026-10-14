@@ -625,12 +625,14 @@ export type Database = {
         Row: {
           account_type: string
           brand_color: string | null
+          business_profile: Json
           content_auto_generate: boolean
           content_default_output_types: string[]
           content_default_tones: string[]
           content_notify_on_ready: boolean
           created_at: string
           extra_seats_purchased: number
+          favicon_url: string | null
           id: string
           industry: string | null
           install_verified: boolean
@@ -656,12 +658,14 @@ export type Database = {
         Insert: {
           account_type?: string
           brand_color?: string | null
+          business_profile?: Json
           content_auto_generate?: boolean
           content_default_output_types?: string[]
           content_default_tones?: string[]
           content_notify_on_ready?: boolean
           created_at?: string
           extra_seats_purchased?: number
+          favicon_url?: string | null
           id?: string
           industry?: string | null
           install_verified?: boolean
@@ -687,12 +691,14 @@ export type Database = {
         Update: {
           account_type?: string
           brand_color?: string | null
+          business_profile?: Json
           content_auto_generate?: boolean
           content_default_output_types?: string[]
           content_default_tones?: string[]
           content_notify_on_ready?: boolean
           created_at?: string
           extra_seats_purchased?: number
+          favicon_url?: string | null
           id?: string
           industry?: string | null
           install_verified?: boolean
@@ -1010,6 +1016,30 @@ export type Database = {
           id?: number
           metadata?: Json
           status?: string
+        }
+        Relationships: []
+      }
+      industries: {
+        Row: {
+          created_at: string
+          created_by_ai: boolean
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_ai?: boolean
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          created_by_ai?: boolean
+          id?: string
+          name?: string
+          slug?: string
         }
         Relationships: []
       }
@@ -2271,6 +2301,10 @@ export type Database = {
           proof_count: number
         }[]
       }
+      business_is_unlimited: {
+        Args: { _business_id: string }
+        Returns: boolean
+      }
       business_plan_usage: { Args: { _business_id: string }; Returns: Json }
       can_activate_widget: {
         Args: { _business_id: string; _exclude_widget?: string }
@@ -2291,6 +2325,10 @@ export type Database = {
       create_business: { Args: { _name: string }; Returns: string }
       create_placeholder_proof_for_request: {
         Args: { _business_id: string }
+        Returns: string
+      }
+      ensure_industry: {
+        Args: { _by_ai?: boolean; _name: string }
         Returns: string
       }
       generate_agency_approval_token: { Args: never; Returns: string }
