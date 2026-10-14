@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.business_is_unlimited(uuid) FROM authenticated;
