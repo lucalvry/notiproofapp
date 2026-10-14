@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RequiredLabel, FieldHint } from "@/components/forms/RequiredField";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Save, Upload, User as UserIcon } from "lucide-react";
@@ -144,8 +145,9 @@ export default function AccountSettings() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Full name</Label>
-            <Input value={fullName} maxLength={120} autoComplete="name" onChange={(e) => setFullName(e.target.value)} placeholder="Jane Doe" />
+            <RequiredLabel>Full name</RequiredLabel>
+            <Input value={fullName} required maxLength={120} autoComplete="name" onChange={(e) => setFullName(e.target.value)} placeholder="Jane Doe" aria-invalid={!fullName.trim()} />
+            <FieldHint>Shown to teammates and in support conversations.</FieldHint>
           </div>
           <div className="flex justify-end">
             <Button onClick={saveProfile} disabled={savingProfile}>
@@ -163,8 +165,9 @@ export default function AccountSettings() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Email</Label>
-            <Input type="email" value={newEmail} maxLength={254} inputMode="email" autoComplete="email" onChange={(e) => setNewEmail(e.target.value)} />
+            <RequiredLabel>Email</RequiredLabel>
+            <Input type="email" required value={newEmail} maxLength={254} inputMode="email" autoComplete="email" onChange={(e) => setNewEmail(e.target.value)} aria-invalid={!newEmail.trim()} />
+            <FieldHint>Used for sign-in and account notices.</FieldHint>
           </div>
           <div className="flex justify-end">
             <Button onClick={saveEmail} disabled={savingEmail || newEmail === user?.email}>
@@ -182,16 +185,17 @@ export default function AccountSettings() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Current password</Label>
-            <PasswordInput value={currentPw} onChange={(e) => setCurrentPw(e.target.value)} autoComplete="current-password" />
+            <RequiredLabel>Current password</RequiredLabel>
+            <PasswordInput value={currentPw} onChange={(e) => setCurrentPw(e.target.value)} autoComplete="current-password" aria-invalid={!currentPw} />
           </div>
           <div className="space-y-2">
-            <Label>New password</Label>
-            <PasswordInput value={newPw} onChange={(e) => setNewPw(e.target.value)} autoComplete="new-password" minLength={8} />
+            <RequiredLabel>New password</RequiredLabel>
+            <PasswordInput value={newPw} onChange={(e) => setNewPw(e.target.value)} autoComplete="new-password" minLength={8} aria-invalid={newPw.length > 0 && newPw.length < 8} />
+            <FieldHint>At least 8 characters, mixing letters and numbers.</FieldHint>
           </div>
           <div className="space-y-2">
-            <Label>Confirm new password</Label>
-            <PasswordInput value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} autoComplete="new-password" minLength={8} />
+            <RequiredLabel>Confirm new password</RequiredLabel>
+            <PasswordInput value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} autoComplete="new-password" minLength={8} aria-invalid={confirmPw.length > 0 && confirmPw !== newPw} />
           </div>
           <div className="flex justify-end">
             <Button onClick={savePassword} disabled={savingPw || !currentPw || !newPw || !confirmPw}>

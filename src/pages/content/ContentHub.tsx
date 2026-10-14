@@ -8,6 +8,7 @@ import { ContentLibraryTab } from "./components/ContentLibraryTab";
 import { ProofQueueTab } from "./components/ProofQueueTab";
 import { ContentSubNav } from "./components/ContentSubNav";
 import { VideoBadgeLink } from "@/components/video/YouTubeEmbed";
+import { InfoTip } from "@/components/help/InfoTip";
 
 export default function ContentHub() {
   const [params, setParams] = useSearchParams();
@@ -25,8 +26,7 @@ export default function ContentHub() {
       <ReadOnlyBanner />
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">CONT-01</div>
-          <h1 className="text-3xl font-bold mt-1">Content hub</h1>
+          <h1 className="text-3xl font-bold mt-1 flex items-center gap-2">Content hub <InfoTip term="contentHub" /></h1>
           <p className="text-muted-foreground mt-1">
             AI-generated marketing pieces from your approved proof — and proofs still waiting for content.
           </p>
@@ -42,8 +42,8 @@ export default function ContentHub() {
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
-          <TabsTrigger value="library">Library</TabsTrigger>
-          <TabsTrigger value="queue">Proof queue</TabsTrigger>
+          <TabsTrigger value="library" className="gap-1">Library<InfoTip term="library" /></TabsTrigger>
+          <TabsTrigger value="queue" className="gap-1">Proof queue<InfoTip term="proofQueue" /></TabsTrigger>
         </TabsList>
         <TabsContent value="library" className="mt-6">
           <ContentLibraryTab />

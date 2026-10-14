@@ -12,6 +12,8 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+import { TRIAL_DURATION_MS } from "../_shared/trial.ts";
+
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -60,6 +62,23 @@ Deno.serve(async (req) => {
       visitor_type,
     });
     if (error) throw error;
+
+    // Any event from this widget means it's alive on the page — refresh the
+    // "last seen" timestamp used to power the honest "Live on site" status.
+    await supabase
+      .from("businesses")
+      .update({ widget_last_seen_at: new Date().toISOString() })
+      .eq("id", business_id);
+
+    // Free trial: the countdown starts at the first impression on the live site.
+    if (event_type === "impression") {
+      await supabase
+        .from("businesses")
+        .update({ trial_ends_at: new Date(Date.now() + TRIAL_DURATION_MS).toISOString() })
+        .eq("id", business_id)
+        .eq("plan", "free")
+        .is("trial_ends_at", null);
+    }
 
     // Conversion assist: when a conversion fires, look back 7 days for the
     // most recent interaction by the same visitor and write a sibling

@@ -1,3 +1,5 @@
+import { TrialCountdown } from "@/components/billing/TrialCountdown";
+import { useTrialGate } from "@/hooks/useTrialGate";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +13,8 @@ import { UsageBanner } from "@/components/billing/UsageBanner";
 import { YouTubeEmbed } from "@/components/video/YouTubeEmbed";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePlan } from "@/lib/plan-helpers";
+import { SetupChecklist } from "@/components/onboarding/SetupChecklist";
+import { InfoTip } from "@/components/help/InfoTip";
 
 import type { Database } from "@/integrations/supabase/types";
 
@@ -42,6 +46,7 @@ function timeAgo(iso: string) {
 }
 
 export default function Dashboard() {
+  const trialGate = useTrialGate();
   const { profile, businesses, currentBusinessId } = useAuth();
   const currentBusiness = businesses.find((b) => b.id === currentBusinessId);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -107,11 +112,11 @@ export default function Dashboard() {
   }, [currentBusinessId, days]);
 
   const cards = [
-    { label: "Proof added", value: stats?.proof, icon: MessageSquareQuote, color: "text-accent", to: "/proof" },
-    { label: "Active widgets", value: stats?.widgets, icon: MonitorSmartphone, color: "text-teal", to: "/widgets" },
-    { label: "Integrations", value: stats?.integrations, icon: Plug, color: "text-purple", to: "/integrations" },
-    { label: "Assisted conversions", value: stats?.conversions, icon: TrendingUp, color: "text-gold", to: "/analytics" },
-    { label: "Content created", value: stats?.content_week, icon: Sparkles, color: "text-purple", to: "/content" },
+     { label: "Proof added", term: "proofAdded", value: stats?.proof, icon: MessageSquareQuote, color: "text-accent", to: "/proof" },
+     { label: "Active widgets", term: "activeWidgets", value: stats?.widgets, icon: MonitorSmartphone, color: "text-teal", to: "/widgets" },
+     { label: "Integrations", term: "integrationsStat", value: stats?.integrations, icon: Plug, color: "text-purple", to: "/integrations" },
+     { label: "Assisted conversions", term: "assistedConversions", value: stats?.conversions, icon: TrendingUp, color: "text-gold", to: "/analytics" },
+     { label: "Content created", term: "contentCreated", value: stats?.content_week, icon: Sparkles, color: "text-purple", to: "/content" },
   ];
 
   return (
@@ -134,9 +139,13 @@ export default function Dashboard() {
               ))}
             </SelectContent>
           </Select>
-          <Button asChild><Link to="/widgets/new">Create widget</Link></Button>
+          <Button asChild><Link to="/widgets/new" onClick={(e) => { if (!trialGate.requireActive()) e.preventDefault(); }}>Create widget</Link></Button>
         </div>
       </div>
+
+      <TrialCountdown />
+
+      <SetupChecklist />
 
       <UsageBanner />
       {Number.isFinite(plan.dataRetentionDays) && (
@@ -146,11 +155,11 @@ export default function Dashboard() {
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {cards.map(({ label, value, icon: Icon, color, to }) => (
+        {cards.map(({ label, value, icon: Icon, color, to, term }) => (
           <Link to={to} key={label}>
             <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">{label} <InfoTip term={term as any} /></CardTitle>
                 <Icon className={`h-5 w-5 ${color}`} />
               </CardHeader>
               <CardContent>
@@ -260,10 +269,10 @@ export default function Dashboard() {
       <Card>
         <CardHeader><CardTitle className="text-base">Get started</CardTitle></CardHeader>
         <CardContent className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <Button variant="outline" asChild className="h-auto py-4 flex-col items-start"><Link to="/integrations"><Plug className="h-5 w-5 mb-2 text-purple" /><div className="text-sm font-semibold">Connect a source</div><div className="text-xs text-muted-foreground mt-0.5">Stripe, Shopify, Google…</div></Link></Button>
-          <Button variant="outline" asChild className="h-auto py-4 flex-col items-start"><Link to="/proof/request"><MessageSquareQuote className="h-5 w-5 mb-2 text-accent" /><div className="text-sm font-semibold">Request a testimonial</div><div className="text-xs text-muted-foreground mt-0.5">Send a customer link</div></Link></Button>
-          <Button variant="outline" asChild className="h-auto py-4 flex-col items-start"><Link to="/widgets/new"><MonitorSmartphone className="h-5 w-5 mb-2 text-teal" /><div className="text-sm font-semibold">Build a widget</div><div className="text-xs text-muted-foreground mt-0.5">Floating, inline or badge</div></Link></Button>
-          <Button variant="outline" asChild className="h-auto py-4 flex-col items-start"><Link to="/content"><Sparkles className="h-5 w-5 mb-2 text-purple" /><div className="text-sm font-semibold">Generate content</div><div className="text-xs text-muted-foreground mt-0.5">Turn proof into posts</div></Link></Button>
+          <Button variant="action" asChild className="h-auto py-4 flex-col items-start whitespace-normal text-left"><Link to="/integrations"><Plug className="h-5 w-5 mb-2 text-purple" /><div className="text-sm font-semibold">Connect a source</div><div className="text-xs text-muted-foreground mt-0.5">Stripe, Shopify, Google…</div></Link></Button>
+          <Button variant="action" asChild className="h-auto py-4 flex-col items-start whitespace-normal text-left"><Link to="/proof/request"><MessageSquareQuote className="h-5 w-5 mb-2 text-accent" /><div className="text-sm font-semibold">Request a testimonial</div><div className="text-xs text-muted-foreground mt-0.5">Send a customer link</div></Link></Button>
+          <Button variant="action" asChild className="h-auto py-4 flex-col items-start whitespace-normal text-left"><Link to="/widgets/new" onClick={(e) => { if (!trialGate.requireActive()) e.preventDefault(); }}><MonitorSmartphone className="h-5 w-5 mb-2 text-teal" /><div className="text-sm font-semibold">Build a widget</div><div className="text-xs text-muted-foreground mt-0.5">Floating, inline or badge</div></Link></Button>
+          <Button variant="action" asChild className="h-auto py-4 flex-col items-start whitespace-normal text-left"><Link to="/content"><Sparkles className="h-5 w-5 mb-2 text-purple" /><div className="text-sm font-semibold">Generate content</div><div className="text-xs text-muted-foreground mt-0.5">Turn proof into posts</div></Link></Button>
         </CardContent>
       </Card>
 

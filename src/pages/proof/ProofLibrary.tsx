@@ -33,6 +33,7 @@ import { RequestTestimonialModal } from "@/components/proof/RequestTestimonialMo
 import { AssignToWidgetDialog } from "@/components/proof/AssignToWidgetDialog";
 import type { Database } from "@/integrations/supabase/types";
 import { ReadOnlyBanner } from "@/components/layouts/ReadOnlyBanner";
+import { InfoTip } from "@/components/help/InfoTip";
 
 type ProofRow = Database["public"]["Tables"]["proof_objects"]["Row"] & {
   status?: string | null;
@@ -263,8 +264,7 @@ export default function ProofLibrary() {
       <ReadOnlyBanner />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">PROOF-01</div>
-          <h1 className="text-3xl font-bold mt-1">Proof library</h1>
+          <h1 className="text-3xl font-bold mt-1 flex items-center gap-2">Proof library <InfoTip term="library" /></h1>
           <p className="text-muted-foreground mt-1">All testimonials, reviews and signals collected for your business.</p>
         </div>
         {canEdit && (
@@ -299,7 +299,7 @@ export default function ProofLibrary() {
                 )}
               </div>
 
-              <FilterGroup label="Type">
+              <FilterGroup label="Type" term="proofType">
                 <FilterChips
                   value={typeFilter}
                   options={TYPE_OPTIONS}
@@ -308,7 +308,7 @@ export default function ProofLibrary() {
               </FilterGroup>
 
               {sources.length > 0 && (
-                <FilterGroup label="Source">
+                <FilterGroup label="Source" term="source">
                   <FilterChips
                     value={sourceFilter}
                     options={sources.map((s) => ({ value: s, label: s }))}
@@ -317,7 +317,7 @@ export default function ProofLibrary() {
                 </FilterGroup>
               )}
 
-              <FilterGroup label="Verification tier">
+              <FilterGroup label="Verification tier" term="verificationTier">
                 <FilterChips
                   value={tierFilter}
                   options={TIER_OPTIONS}
@@ -325,7 +325,7 @@ export default function ProofLibrary() {
                 />
               </FilterGroup>
 
-              <FilterGroup label="Sentiment">
+              <FilterGroup label="Sentiment" term="sentiment">
                 <FilterChips
                   value={sentimentFilter}
                   options={SENTIMENT_OPTIONS}
@@ -333,7 +333,7 @@ export default function ProofLibrary() {
                 />
               </FilterGroup>
 
-              <FilterGroup label="Date">
+              <FilterGroup label="Date" term="date">
                 <FilterChips
                   value={dateFilter === "all" ? "" : dateFilter}
                   options={DATE_OPTIONS.filter((o) => o.value !== "all").map((o) => ({
@@ -344,7 +344,7 @@ export default function ProofLibrary() {
                 />
               </FilterGroup>
 
-              <FilterGroup label="Product">
+              <FilterGroup label="Product" term="product">
                 <FilterChips
                   value={productFilter}
                   options={[
@@ -482,7 +482,7 @@ export default function ProofLibrary() {
                     />
                     <span>
                       {selected.size > 0
-                        ? `${selected.size} selected`
+                        ? `${selected.size} selected <InfoTip term="bulkReview" />`
                         : `${filteredAll.length} item${filteredAll.length === 1 ? "" : "s"}`}
                     </span>
                   </div>
@@ -678,10 +678,13 @@ export default function ProofLibrary() {
   );
 }
 
-function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
+function FilterGroup({ label, children, term }: { label: string; children: React.ReactNode; term?: Parameters<typeof InfoTip>[0]["term"] }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs uppercase tracking-wider text-muted-foreground">{label}</Label>
+      <Label className="text-xs uppercase tracking-wider text-muted-foreground inline-flex items-center gap-1">
+        {label}
+        {term && <InfoTip term={term} />}
+      </Label>
       {children}
     </div>
   );

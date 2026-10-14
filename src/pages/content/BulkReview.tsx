@@ -15,6 +15,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { InfoTip } from "@/components/help/InfoTip";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { OUTPUT_TYPE_LABELS } from "./components/ContentPieceCard";

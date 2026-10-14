@@ -47,12 +47,43 @@ export function getEffectivePlan(business: { plan?: string | null; plan_tier?: s
   return planByKey(business?.plan ?? business?.plan_tier ?? "free");
 }
 
+/** localStorage key for the admin "Test as plan" preview (BusinessDetail page). */
+export const TEST_PLAN_KEY = "notiproof.test_plan";
+export const TEST_PLAN_EVENT = "notiproof:test-plan-changed";
+
+function readTestPlanOverride(): PlanDefinition | null {
+  try {
+    const key = localStorage.getItem(TEST_PLAN_KEY);
+    if (!key) return null;
+    const plan = planByKey(key);
+    return plan.key === key ? plan : null;
+  } catch {
+    return null;
+  }
+}
+
 export function usePlan() {
   const { businesses, currentBusinessId, profile } = useAuth();
   const business = businesses.find((b) => b.id === currentBusinessId) ?? null;
-  // Platform admins are never limited (mirrors business_is_unlimited() in the database).
-  const plan = profile?.is_admin ? ADMIN_PLAN : getEffectivePlan(business);
-  return { plan, business };
+  const [testOverride, setTestOverride] = useState<PlanDefinition | null>(() =>
+    readTestPlanOverride(),
+  );
+
+  useEffect(() => {
+    const onChange = () => setTestOverride(readTestPlanOverride());
+    window.addEventListener(TEST_PLAN_EVENT, onChange);
+    window.addEventListener("storage", onChange);
+    return () => {
+      window.removeEventListener(TEST_PLAN_EVENT, onChange);
+      window.removeEventListener("storage", onChange);
+    };
+  }, []);
+
+  // Platform admins are never limited (mirrors business_is_unlimited() in the
+  // database) — unless they picked a "Test as plan" preview on the admin
+  // business page, which lets them see exactly what that plan's users see.
+  const plan = profile?.is_admin ? testOverride ?? ADMIN_PLAN : getEffectivePlan(business);
+  return { plan, business, testPlanOverride: profile?.is_admin ? testOverride : null };
 }
 
 export function usePlanUsage() {

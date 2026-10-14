@@ -85,6 +85,7 @@ export default function OverviewTab({ onTabChange }: { onTabChange: (t: string) 
   const [series, setSeries] = useState<SeriesRow[] | null>(null);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [alerts, setAlerts] = useState<ActiveAlert[]>([]);
+  const [alertsState, setAlertsState] = useState<"loading" | "unavailable" | "ready">("loading");
   const [audit, setAudit] = useState<any[]>([]);
 
   const load = async () => {
@@ -108,6 +109,7 @@ export default function OverviewTab({ onTabChange }: { onTabChange: (t: string) 
     );
     setSnapshot((snapRes.data ?? null) as Snapshot | null);
     setAlerts((alertsRes.data ?? []) as ActiveAlert[]);
+    setAlertsState(alertsRes.error ? "unavailable" : "ready");
     setAudit((auditRes.data ?? []) as any[]);
   };
 
@@ -124,23 +126,26 @@ export default function OverviewTab({ onTabChange }: { onTabChange: (t: string) 
     (snapshot?.queue_depth.pending_email_sends ?? 0) +
     (snapshot?.queue_depth.pending_enrichment ?? 0);
 
+  const hasCritical = alerts.some((a) => a.severity === "critical");
+  const hasWarning = alerts.some((a) => a.severity === "warning");
+
   return (
     <div className="space-y-6">
       {/* 6 critical health indicators */}
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
         <HealthCard
           label="Platform"
-          value={alerts.some((a) => a.severity === "critical") ? "Issues" : "Live"}
-          tone={alerts.some((a) => a.severity === "critical") ? "danger" : "ok"}
-          icon={CheckCircle2}
+          value={alertsState === "loading" ? "Checking…" : alertsState === "unavailable" ? "Unable to verify" : hasCritical ? "Issues" : hasWarning ? "Degraded" : "Live"}
+          tone={alertsState !== "ready" ? "info" : hasCritical ? "danger" : hasWarning ? "warn" : "ok"}
+          icon={alertsState === "ready" && (hasCritical || hasWarning) ? AlertTriangle : CheckCircle2}
           sub="Health check"
         />
         <HealthCard
           label="Active alerts"
-          value={alerts.length}
-          tone={alerts.length === 0 ? "ok" : alerts.some((a) => a.severity === "critical") ? "danger" : "warn"}
+          value={alertsState === "ready" ? alerts.length : "—"}
+          tone={alertsState !== "ready" ? "info" : alerts.length === 0 ? "ok" : hasCritical ? "danger" : "warn"}
           icon={AlertTriangle}
-          sub={alerts.length ? "needs attention" : "all clear"}
+          sub={alertsState === "loading" ? "loading" : alertsState === "unavailable" ? "could not load alerts" : alerts.length ? "needs attention" : "all clear"}
         />
         <HealthCard
           label="MRR"
@@ -230,13 +235,17 @@ export default function OverviewTab({ onTabChange }: { onTabChange: (t: string) 
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-destructive" />
+              <AlertTriangle className={hasCritical ? "h-4 w-4 text-destructive" : "h-4 w-4 text-muted-foreground"} />
               Active alerts
               <Badge variant="secondary" className="ml-2">{alerts.length}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {alerts.length === 0 ? (
+            {alertsState !== "ready" ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                {alertsState === "loading" ? "Checking platform status…" : "Unable to verify platform status right now."}
+              </div>
+            ) : alerts.length === 0 ? (
               <div className="py-8 text-center text-sm text-muted-foreground">
                 <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-success" />
                 No active alerts. Platform is healthy.

@@ -396,7 +396,6 @@ export default function Collect() {
             {ctx.business_logo_url && (
               <img src={ctx.business_logo_url} alt={ctx.business_name} className="h-10 mx-auto mb-3 object-contain" />
             )}
-            <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">CUST-01</div>
             <h1 className="text-2xl font-bold mt-1">Share your experience</h1>
             <p className="text-muted-foreground mt-1 text-sm">Your testimonial helps {ctx.business_name} reach more people.</p>
             <div className="mt-2"><VideoBadgeLink audience="customer" label="How it works — 60 seconds" /></div>
@@ -626,7 +625,6 @@ export function CollectThanks() {
               )}
             </div>
           )}
-          <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">CUST-02</div>
           <h1 className="text-2xl font-bold mt-1">Thank you!</h1>
           <p className="text-muted-foreground mt-2">Your testimonial has been received. We really appreciate it.</p>
           {photoUrl && (

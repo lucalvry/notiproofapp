@@ -135,7 +135,6 @@ export default function AgencyReseller() {
       </Button>
 
       <div>
-        <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">ABILL-02</div>
         <h1 className="text-3xl font-bold mt-1">Reseller pricing</h1>
         <p className="text-muted-foreground mt-1 max-w-2xl">
           Set the retail price you charge each client and the wholesale cost NotiProof bills you for that tier.

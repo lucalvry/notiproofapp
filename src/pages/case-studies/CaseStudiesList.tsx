@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { InfoTip } from "@/components/help/InfoTip";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -53,8 +54,7 @@ export default function CaseStudiesList() {
       <ReadOnlyBanner />
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">CS-01</div>
-          <h1 className="text-3xl font-bold mt-1">Case studies</h1>
+          <h1 className="text-3xl font-bold mt-1 flex items-center gap-2">Case studies <InfoTip term="caseStudies" /></h1>
           <p className="text-muted-foreground mt-1">Long-form customer stories generated from your approved proof.</p>
         </div>
         <Button asChild>

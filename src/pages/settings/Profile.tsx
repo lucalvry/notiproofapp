@@ -1,3 +1,4 @@
+import { showAiFailureToast } from "@/components/onboarding/GuidedSetup/utils";
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,6 +16,11 @@ import type { Database } from "@/integrations/supabase/types";
 import { ReadOnlyBanner } from "@/components/layouts/ReadOnlyBanner";
 import { DomainsCard } from "@/components/settings/DomainsCard";
 import { businessSettingsSchema, parseOrError } from "@/lib/validation";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { uploadToBunny } from "@/lib/bunny-upload";
+import { Sparkles, Upload } from "lucide-react";
+import { useRef } from "react";
 
 type Business = Database["public"]["Tables"]["businesses"]["Row"] & {
   brand_color?: string | null;
@@ -47,8 +53,7 @@ export function SettingsLayout() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">SET</div>
-        <h1 className="text-3xl font-bold mt-1">Settings</h1>
+        <h1 className="text-3xl font-bold">Settings</h1>
       </div>
       <div className="border-b flex gap-4">
         {tabs.map((t) => (
@@ -72,6 +77,10 @@ export default function ProfileSettings() {
   const [settings, setSettings] = useState<BusinessSettings>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analyzedProfile, setAnalyzedProfile] = useState<any | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!currentBusinessId) return;
@@ -147,6 +156,136 @@ export default function ProfileSettings() {
           <div className="flex justify-end pt-2"><Button onClick={save} disabled={saving || !canEdit}>{saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />} Save</Button></div>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Logo</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-xs text-muted-foreground">Shown in email previews and the business switcher.</p>
+          <div className="flex items-center gap-4">
+            <div className="h-14 w-14 rounded bg-muted flex items-center justify-center overflow-hidden shrink-0">
+              {b.logo_url ? <img src={b.logo_url} alt="Logo" className="h-full w-full object-contain" /> : null}
+            </div>
+            <div>
+              <Button type="button" variant="outline" size="sm" onClick={() => logoFileRef.current?.click()} disabled={!canEdit || uploadingLogo}>
+                {uploadingLogo ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+                Upload logo
+              </Button>
+              <input
+                ref={logoFileRef}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!file || !b) return;
+                  if (!/^image\/(jpeg|png|webp|gif|svg\+xml)$/.test(file.type)) {
+                    return toast({ title: "Unsupported image", description: "Use JPEG, PNG, WebP, GIF or SVG.", variant: "destructive" });
+                  }
+                  if (file.size > 2 * 1024 * 1024) {
+                    return toast({ title: "Image too large", description: "Max 2 MB", variant: "destructive" });
+                  }
+                  setUploadingLogo(true);
+                  try {
+                    const url = await uploadToBunny({
+                      kind: "assets",
+                      folder: `logos/${b.id}`,
+                      filename: `${Date.now()}_${file.name}`,
+                      contentType: file.type,
+                      blob: file,
+                      businessId: b.id,
+                    });
+                    const { error } = await supabase.from("businesses").update({ logo_url: url } as any).eq("id", b.id);
+                    if (error) throw error;
+                    setB({ ...b, logo_url: url });
+                    toast({ title: "Logo updated" });
+                  } catch (err) {
+                    toast({ title: "Upload failed", description: (err as Error).message, variant: "destructive" });
+                  } finally {
+                    setUploadingLogo(false);
+                  }
+                }}
+              />
+              <p className="mt-2 text-xs text-muted-foreground">PNG, JPG, WebP, GIF or SVG, up to 2 MB.</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Business DNA</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            Re-scan your website to refresh your industry, target audience, and brand voice suggestions. You can fine-tune everything under Brand voice.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!canEdit || analyzing || !(b as any).website_url}
+            onClick={async () => {
+              if (!b || !(b as any).website_url) return;
+              setAnalyzing(true);
+              setAnalyzedProfile(null);
+              try {
+                const { data, error } = await supabase.functions.invoke("analyze-business-site", {
+                  body: { business_id: b.id, url: (b as any).website_url },
+                });
+                if (error) throw error;
+                if ((data as any)?.error === "ai_unavailable") {
+                  if ((data as any)?.favicon_url) setB({ ...b, favicon_url: (data as any).favicon_url } as any);
+                  showAiFailureToast(toast, (data as any)?.failure_id);
+                  return;
+                }
+                if ((data as any)?.error) throw new Error((data as any).error);
+                setAnalyzedProfile((data as any)?.profile ?? null);
+                setB({ ...b, favicon_url: (data as any)?.favicon_url ?? b.logo_url, industry: (data as any)?.industry ?? b.industry } as any);
+                setSettings({ ...settings, industry: (data as any)?.industry ?? settings.industry });
+                toast({ title: "Website analyzed", description: "Review the extracted profile below, then adjust your brand voice." });
+              } catch (err) {
+                toast({ title: "Couldn't analyze website", description: (err as Error).message, variant: "destructive" });
+              } finally {
+                setAnalyzing(false);
+              }
+            }}
+          >
+            {analyzing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
+            Analyze website
+          </Button>
+          {!(b as any).website_url && (
+            <p className="text-xs text-destructive">Add a website above first.</p>
+          )}
+          {analyzedProfile && (
+            <div className="rounded-md border p-3 space-y-2 text-sm">
+              <div><span className="font-medium">Industry: </span>{(b as any).industry || "—"}</div>
+              {analyzedProfile.target_audience && <div><span className="font-medium">Target audience: </span>{analyzedProfile.target_audience}</div>}
+              {analyzedProfile.problems_solved && <div><span className="font-medium">Problems solved: </span>{analyzedProfile.problems_solved}</div>}
+              {analyzedProfile.how_customers_search && <div><span className="font-medium">How customers search: </span>{analyzedProfile.how_customers_search}</div>}
+              {analyzedProfile.brand_tone && <div><span className="font-medium">Brand tone: </span>{analyzedProfile.brand_tone}</div>}
+              {Array.isArray(analyzedProfile.words_to_use) && analyzedProfile.words_to_use.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="font-medium">Words to use:</span>
+                  {analyzedProfile.words_to_use.map((w: string) => <Badge key={w} variant="secondary">{w}</Badge>)}
+                </div>
+              )}
+              {Array.isArray(analyzedProfile.words_to_avoid) && analyzedProfile.words_to_avoid.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="font-medium">Words to avoid:</span>
+                  {analyzedProfile.words_to_avoid.map((w: string) => <Badge key={w} variant="outline">{w}</Badge>)}
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground pt-1">
+                Saved automatically. Fine-tune tone and word lists under Settings → Brand voice.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <DomainsCard />
     </div>
   );

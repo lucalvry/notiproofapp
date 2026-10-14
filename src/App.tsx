@@ -25,10 +25,6 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 
-import OnbConnect from "./pages/onboarding/Connect";
-import OnbInstall from "./pages/onboarding/Install";
-import OnbWidget from "./pages/onboarding/Widget";
-import OnbComplete from "./pages/onboarding/Complete";
 
 import ProofLibrary from "./pages/proof/ProofLibrary";
 import ProofDetail from "./pages/proof/ProofDetail";
@@ -188,10 +184,11 @@ const App = () => (
 
           {/* Onboarding */}
           <Route element={<WizardLayout />}>
-            <Route path="/onboarding/connect" element={<OnbConnect />} />
-            <Route path="/onboarding/install" element={<OnbInstall />} />
-            <Route path="/onboarding/preview" element={<OnbWidget />} />
-            <Route path="/onboarding/complete" element={<OnbComplete />} />
+            {/* Old wizard retired: every entry point now opens the guided setup popup. */}
+            <Route path="/onboarding/connect" element={<Navigate to="/dashboard?setup=connect" replace />} />
+            <Route path="/onboarding/install" element={<Navigate to="/dashboard?setup=install" replace />} />
+            <Route path="/onboarding/preview" element={<Navigate to="/dashboard?setup=widget" replace />} />
+            <Route path="/onboarding/complete" element={<Navigate to="/dashboard?setup=auto" replace />} />
           </Route>
 
           {/* Authenticated app */}

@@ -60,8 +60,8 @@ export interface PlanDefinition {
 export const PLANS: PlanDefinition[] = [
   {
     key: "free",
-    name: "Free",
-    tagline: "For testing and small projects",
+    name: "Free trial",
+    tagline: "Try NotiProof on your own site",
     monthlyPriceUsd: 0,
     yearlyMonthlyPriceUsd: 0,
     yearlyPriceUsd: 0,
@@ -76,6 +76,7 @@ export const PLANS: PlanDefinition[] = [
     teamSeatsIncluded: 1,
     extraSeatPriceUsd: 0,
     features: [
+      "Free trial — see real results first",
       "1 website",
       "1 active widget",
       "100 proof items / month",

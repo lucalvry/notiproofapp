@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.report_ai_failure(uuid, text) FROM PUBLIC, anon;

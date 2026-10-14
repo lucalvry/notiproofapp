@@ -6,6 +6,7 @@ import { AuthLayout } from "@/components/layouts/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RequiredLabel, FieldHint, markFirstInvalid } from "@/components/forms/RequiredField";
 import { useToast } from "@/hooks/use-toast";
 import { appRedirect } from "@/lib/app-url";
 import { forgotPasswordSchema, parseOrError } from "@/lib/validation";
@@ -21,6 +22,7 @@ export default function ForgotPassword() {
     const parsed = parseOrError(forgotPasswordSchema, { email });
     if (parsed.error) {
       toast({ title: "Check your email", description: parsed.error, variant: "destructive" });
+      markFirstInvalid(e.currentTarget as HTMLFormElement);
       return;
     }
     setLoading(true);
@@ -45,8 +47,9 @@ export default function ForgotPassword() {
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" required maxLength={254} inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <RequiredLabel htmlFor="email">Email</RequiredLabel>
+            <Input id="email" type="email" required maxLength={254} inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} aria-invalid={!email} />
+            <FieldHint>The email on your NotiProof account — we'll send a reset link there.</FieldHint>
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Sending..." : "Send reset link"}

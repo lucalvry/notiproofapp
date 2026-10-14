@@ -1,3 +1,4 @@
+import { InfoTip } from "@/components/help/InfoTip";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -137,7 +138,7 @@ export default function CampaignsList() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
+                <TableHead><span className="inline-flex items-center gap-1">Type <InfoTip term="campaignType" /></span></TableHead>
                 <TableHead className="text-right">Requests sent</TableHead>
                 <TableHead>Last updated</TableHead>
                 <TableHead className="text-center">Active</TableHead>

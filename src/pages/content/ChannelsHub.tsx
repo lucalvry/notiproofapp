@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { ContentSubNav } from "./components/ContentSubNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { InfoTip } from "@/components/help/InfoTip";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
@@ -116,8 +117,7 @@ export default function ChannelsHub() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">PUB-03</div>
-        <h1 className="text-3xl font-bold mt-1">Publishing channels</h1>
+        <h1 className="text-3xl font-bold mt-1 inline-flex items-center gap-2">Publishing channels<InfoTip term="publishingChannels" /></h1>
         <p className="text-muted-foreground mt-1">Connect outlets where your content gets sent.</p>
       </div>
       <ContentSubNav />

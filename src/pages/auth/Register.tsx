@@ -6,6 +6,7 @@ import { AuthLayout } from "@/components/layouts/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RequiredLabel, FieldHint, markFirstInvalid } from "@/components/forms/RequiredField";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -103,6 +104,7 @@ export default function Register() {
     });
     if (parsed.error) {
       toast({ title: "Check your details", description: parsed.error, variant: "destructive" });
+      markFirstInvalid(e.currentTarget as HTMLFormElement);
       return;
     }
     if (!strongEnough) {
@@ -149,7 +151,7 @@ export default function Register() {
           return;
         }
       }
-      navigate("/onboarding/connect", { replace: true });
+      navigate("/dashboard?setup=auto", { replace: true });
     } else {
       navigate("/verify-email", { state: { email } });
     }
@@ -167,7 +169,7 @@ export default function Register() {
     if (!attributionError(attribution)) savePendingAttribution(attribution);
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: appRedirect("/onboarding/connect") },
+      options: { redirectTo: appRedirect("/dashboard?setup=auto") },
     });
   };
 
@@ -210,15 +212,17 @@ export default function Register() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="fullName">Your name</Label>
-          <Input id="fullName" required maxLength={120} value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" />
+          <RequiredLabel htmlFor="fullName">Your name</RequiredLabel>
+          <Input id="fullName" required maxLength={120} value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" aria-invalid={!fullName.trim()} />
+          <FieldHint>Your full name — shown to teammates and support.</FieldHint>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="businessName">Business name</Label>
-          <Input id="businessName" required maxLength={120} value={businessName} onChange={(e) => setBusinessName(e.target.value)} autoComplete="organization" />
+          <RequiredLabel htmlFor="businessName">Business name</RequiredLabel>
+          <Input id="businessName" required maxLength={120} value={businessName} onChange={(e) => setBusinessName(e.target.value)} autoComplete="organization" aria-invalid={!businessName.trim()} />
+          <FieldHint>Your company or brand name — used to label your NotiProof account.</FieldHint>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">Work email</Label>
+          <RequiredLabel htmlFor="email">Work email</RequiredLabel>
           <div className="relative">
             <Input
               id="email"
@@ -236,13 +240,14 @@ export default function Register() {
             {!emailChecking && emailTaken === false && <Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-success" />}
             {!emailChecking && emailTaken === true && <X className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive" />}
           </div>
+          <FieldHint>We send account and billing notices here.</FieldHint>
           {emailTaken === true && (
             <p className="text-xs text-destructive">An account with this email already exists. <Link to="/login" className="underline">Sign in instead</Link>.</p>
           )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <PasswordInput id="password" required minLength={8} maxLength={200} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" />
+          <RequiredLabel htmlFor="password">Password</RequiredLabel>
+          <PasswordInput id="password" required minLength={8} maxLength={200} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" aria-invalid={password.length > 0 && !strongEnough} />
           {password && (
             <div className="space-y-1">
               <div className="flex gap-1">
@@ -256,7 +261,7 @@ export default function Register() {
           {!password && <p className="text-xs text-muted-foreground">At least 8 characters</p>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm password</Label>
+          <RequiredLabel htmlFor="confirmPassword">Confirm password</RequiredLabel>
           <PasswordInput
             id="confirmPassword"
             required

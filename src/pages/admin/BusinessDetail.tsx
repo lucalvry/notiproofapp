@@ -36,6 +36,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { BusinessPeopleCards } from "@/components/admin/BusinessPeopleCards";
+import { PLANS } from "@/lib/plans";
+import { TEST_PLAN_KEY, TEST_PLAN_EVENT } from "@/lib/plan-helpers";
 import {
   ArrowLeft,
   CalendarClock,
@@ -101,6 +103,31 @@ export default function BusinessDetail() {
   const [extendDays, setExtendDays] = useState("14");
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [testPlan, setTestPlan] = useState<string>(() => {
+    try {
+      return localStorage.getItem(TEST_PLAN_KEY) ?? "off";
+    } catch {
+      return "off";
+    }
+  });
+
+  const applyTestPlan = (value: string) => {
+    setTestPlan(value);
+    try {
+      if (value === "off") localStorage.removeItem(TEST_PLAN_KEY);
+      else localStorage.setItem(TEST_PLAN_KEY, value);
+    } catch {
+      /* private mode — preview simply won't persist */
+    }
+    window.dispatchEvent(new Event(TEST_PLAN_EVENT));
+    toast({
+      title: value === "off" ? "Plan preview off" : `Previewing ${value} limits`,
+      description:
+        value === "off"
+          ? "You're back to unlimited admin access."
+          : "The app now shows this plan's limits. Switch it off here when done.",
+    });
+  };
 
   const load = async () => {
     if (!id) return;
@@ -306,7 +333,6 @@ export default function BusinessDetail() {
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">ADM-03</div>
           <h1 className="text-3xl font-bold mt-1">{b.name}</h1>
           <div className="flex flex-wrap items-center gap-2 mt-2">
             <Badge className="capitalize">{b.plan_tier ?? b.plan}</Badge>
@@ -415,6 +441,30 @@ export default function BusinessDetail() {
                 value={b.trial_ends_at ? new Date(b.trial_ends_at).toLocaleString() : "—"}
               />
               <Detail label="Stripe customer" value={b.stripe_customer_id} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Test as plan</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-wrap items-center gap-3">
+              <p className="text-sm text-muted-foreground flex-1 min-w-60">
+                Preview the app with this plan's limits. Admins are normally unlimited; the
+                preview applies across the app until you switch it off.
+              </p>
+              <Select value={testPlan} onValueChange={applyTestPlan}>
+                <SelectTrigger className="w-56" aria-label="Test as plan">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="off">Off (admin unlimited)</SelectItem>
+                  {PLANS.filter((p) => p.key !== "agency").map((p) => (
+                    <SelectItem key={p.key} value={p.key}>
+                      {p.name} limits
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </CardContent>
           </Card>
         </TabsContent>

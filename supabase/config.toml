@@ -1,1 +1,9 @@
 project_id = "ykpvxwwhhdzihjphlohh"
+[functions.install-recheck]
+verify_jwt = false
+
+[functions.lifecycle-mailer]
+verify_jwt = false
+
+[functions.unsubscribe]
+verify_jwt = false

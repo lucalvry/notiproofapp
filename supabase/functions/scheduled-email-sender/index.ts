@@ -2,6 +2,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { corsHeaders } from '../_shared/cors.ts';
 import { emailConfigured, sendEmail } from '../_shared/email.ts';
+import { recordInvocation } from '../_shared/monitoring.ts';
 
 function escapeHtml(s: string): string {
   return (s || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
@@ -53,6 +54,8 @@ async function deliver(fromName: string, to: { email: string; name?: string }, s
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
+  const started = Date.now();
+  let runAdmin: any = null;
   try {
     const provided = req.headers.get('x-internal-secret');
     const expected = Deno.env.get('INTERNAL_TRIGGER_SECRET');
@@ -60,11 +63,16 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    if (!emailConfigured()) throw new Error('RESEND_API_KEY not configured');
+    const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    runAdmin = admin;
+
+    if (!emailConfigured()) {
+      await recordInvocation(admin, 'scheduled-email-sender', started, 'error', { reason: 'email_not_configured' }, 'Email service is not configured').catch(() => {});
+      return new Response(JSON.stringify({ error: 'Email service is not configured' }), { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
     const appUrl = (Deno.env.get('APP_URL') || 'https://app.notiproof.xyz').replace(/\/$/, '');
 
-    const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
 
     const nowIso = new Date().toISOString();
     let sent = 0, reminded = 0, failed = 0;
@@ -133,11 +141,20 @@ Deno.serve(async (req) => {
       }
     }
 
+    const delivered = sent + reminded;
+    const allFailed = failed > 0 && delivered === 0;
+    await recordInvocation(
+      admin, 'scheduled-email-sender', started, allFailed ? 'error' : 'ok',
+      { idle: delivered + failed === 0, sent, reminded, failed },
+      allFailed ? `${failed} emails failed to send` : undefined,
+    ).catch((err) => console.error('heartbeat write failed', err));
+
     return new Response(JSON.stringify({ ok: true, sent, reminded, failed, errors }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (e) {
     console.error('scheduled-email-sender error:', e);
-    return new Response(JSON.stringify({ error: String(e?.message || e) }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    if (runAdmin) await recordInvocation(runAdmin, 'scheduled-email-sender', started, 'error', {}, 'Run failed unexpectedly').catch(() => {});
+    return new Response(JSON.stringify({ error: 'Run failed' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 });

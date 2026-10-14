@@ -1,3 +1,4 @@
+import { generateText } from '../_shared/ai.ts';
 // EF-01: Generate content pieces from a proof using Anthropic Claude
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { corsHeaders } from '../_shared/cors.ts';
@@ -24,25 +25,12 @@ const PROMPTS: Record<OutputType, { instr: string; max: number }> = {
   meta_description:  { instr: 'Write an SEO meta description (max 160 chars) for a case study page about this proof.', max: 160 },
 };
 
-async function callAnthropic(apiKey: string, system: string, user: string, maxTokens = 1000) {
-  const res = await fetch(ANTHROPIC_URL, {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: maxTokens,
-      system,
-      messages: [{ role: 'user', content: user }],
-    }),
-  });
-  if (!res.ok) throw new Error(`Anthropic ${res.status}: ${await res.text()}`);
-  const json = await res.json();
-  return json.content?.[0]?.text?.trim() ?? '';
+async function callAnthropic(_k: string | undefined, system: string, user: string, maxTokens = 1000) {
+  const r = await generateText({ system, user, maxTokens });
+  lastModel = `${r.provider}:${r.model}`;
+  return r.text;
 }
+let lastModel = MODEL;
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
@@ -51,8 +39,7 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const anon = Deno.env.get('SUPABASE_ANON_KEY')!;
     const service = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
-    if (!apiKey) throw new Error('ANTHROPIC_API_KEY not configured');
+    const apiKey = undefined;
 
     // Internal-secret bypass for admin smoke tests / server-to-server invocation.
     const internalSecret = req.headers.get('x-internal-secret');
@@ -162,7 +149,7 @@ Deno.serve(async (req) => {
         tone_used: effectiveTone,
         status: 'draft',
         char_count: trimmed.length,
-        ai_model: MODEL,
+        ai_model: lastModel,
         generation_prompt: userPrompt.slice(0, 2000),
       }).select('*').single();
       if (insErr) throw insErr;

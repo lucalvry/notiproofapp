@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AuthLayout } from "@/components/layouts/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { RequiredLabel, FieldHint, markFirstInvalid } from "@/components/forms/RequiredField";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { useToast } from "@/hooks/use-toast";
 import { resetPasswordSchema, parseOrError } from "@/lib/validation";
@@ -33,6 +34,7 @@ export default function ResetPassword() {
     const parsed = parseOrError(resetPasswordSchema, { password, confirmPassword: confirm });
     if (parsed.error) {
       toast({ title: "Check your password", description: parsed.error, variant: "destructive" });
+      markFirstInvalid(e.currentTarget as HTMLFormElement);
       return;
     }
     setLoading(true);
@@ -50,12 +52,14 @@ export default function ResetPassword() {
     <AuthLayout title="Set a new password" subtitle={ready ? "Choose a strong password" : "Verifying recovery link..."}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="password">New password</Label>
-          <PasswordInput id="password" required minLength={8} maxLength={200} value={password} onChange={(e) => setPassword(e.target.value)} disabled={!ready} autoComplete="new-password" />
+          <RequiredLabel htmlFor="password">New password</RequiredLabel>
+          <PasswordInput id="password" required minLength={8} maxLength={200} value={password} onChange={(e) => setPassword(e.target.value)} disabled={!ready} autoComplete="new-password" aria-invalid={password.length > 0 && password.length < 8} />
+          <FieldHint>At least 8 characters, mixing letters and numbers.</FieldHint>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="confirm">Confirm password</Label>
-          <PasswordInput id="confirm" required minLength={8} maxLength={200} value={confirm} onChange={(e) => setConfirm(e.target.value)} disabled={!ready} autoComplete="new-password" />
+          <RequiredLabel htmlFor="confirm">Confirm password</RequiredLabel>
+          <PasswordInput id="confirm" required minLength={8} maxLength={200} value={confirm} onChange={(e) => setConfirm(e.target.value)} disabled={!ready} autoComplete="new-password" aria-invalid={confirm.length > 0 && confirm !== password} />
+          <FieldHint>Re-enter the same password to confirm.</FieldHint>
         </div>
         <Button type="submit" className="w-full" disabled={loading || !ready}>
           {loading ? "Updating..." : "Update password"}

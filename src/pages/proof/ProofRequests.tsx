@@ -17,6 +17,7 @@ import { ArrowLeft, Copy, Loader2, Plus, Send } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { UsageBanner } from "@/components/billing/UsageBanner";
 import { usePlanUsage } from "@/lib/plan-helpers";
+import { InfoTip } from "@/components/help/InfoTip";
 import { proofRequestSchema, parseOrError } from "@/lib/validation";
 import { showRateLimitToastIf } from "@/lib/use-rate-limit-toast";
 
@@ -162,8 +163,7 @@ export default function ProofRequests() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <Button variant="ghost" size="sm" asChild className="mb-2 -ml-2"><Link to="/proof"><ArrowLeft className="h-4 w-4 mr-1" /> Back to library</Link></Button>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">PROOF-03</div>
-          <h1 className="text-3xl font-bold mt-1">Testimonial requests</h1>
+          <h1 className="text-3xl font-bold mt-1 flex items-center gap-2">Testimonial requests <InfoTip term="testimonialRequests" /></h1>
           <p className="text-muted-foreground mt-1">Send a personal link asking customers to share their experience.</p>
         </div>
         <Dialog open={open} onOpenChange={(o) => { if (o && atProofLimit) { toast({ title: "Plan limit reached", description: `You've hit your ${plan.name} plan limit of ${plan.proofLimit.toLocaleString()} proof items this month. Upgrade to send more.`, variant: "destructive" }); return; } setOpen(o); }}>
@@ -218,7 +218,7 @@ export default function ProofRequests() {
               <Table>
                 <TableHeader><TableRow>
                   <TableHead>Customer</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="flex items-center gap-1">Status <InfoTip term="status" /></TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Expires</TableHead>
                   <TableHead className="text-right">Link</TableHead>

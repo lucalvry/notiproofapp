@@ -1,0 +1,2 @@
+CREATE POLICY "Admins can view email sends" ON public.email_sends FOR SELECT TO authenticated USING (public.is_platform_admin());
+CREATE POLICY "No direct user access" ON public.email_unsubscribes FOR SELECT TO authenticated USING (false);

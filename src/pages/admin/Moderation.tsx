@@ -123,7 +123,6 @@ export default function Moderation() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">ADM-04</div>
         <h1 className="text-3xl font-bold mt-1">Moderation queue</h1>
         <p className="text-muted-foreground mt-1">
           Review submitted proof before it goes live. Click any row to inspect details.

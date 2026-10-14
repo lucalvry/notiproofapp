@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
     await admin
       .from("businesses")
-      .update({ install_verified: true })
+      .update({ install_verified: true, widget_last_seen_at: new Date().toISOString() })
       .eq("id", businessId);
   }
 

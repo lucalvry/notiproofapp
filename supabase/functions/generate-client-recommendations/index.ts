@@ -1,3 +1,4 @@
+import { generateText } from "../_shared/ai.ts";
 // EF-06: Generates 3 actionable recommendations for a client based on metrics vs. industry benchmarks.
 // Uses Anthropic Claude. Falls back to deterministic templates on any failure.
 // Auth: caller must have agency access to the client business.
@@ -96,34 +97,16 @@ Deno.serve(async (req) => {
       benchmarks[m] = Number(data ?? 0);
     }
 
-    if (!ANTHROPIC_API_KEY) {
-      return json({ recommendations: fallback(metrics, benchmarks), benchmarks, source: "fallback" });
-    }
 
     const prompt = `You are an expert marketing consultant. Based on these client metrics ${JSON.stringify(metrics)} compared to industry benchmarks ${JSON.stringify(benchmarks)} for industry "${industry ?? "default"}" over the period ${date_range_start ?? "n/a"} to ${date_range_end ?? "n/a"}, write exactly 3 actionable recommendations. Each recommendation must be 1 sentence and reference specific numbers. Output ONLY a JSON array of 3 strings, nothing else.`;
 
-    const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 600,
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
-
-    if (!claudeRes.ok) {
-      const errText = await claudeRes.text();
-      console.error("claude_failed", claudeRes.status, errText);
+    let text = "";
+    try {
+      text = (await generateText({ system: "You are an expert marketing consultant.", user: prompt, maxTokens: 600 })).text;
+    } catch (e) {
+      console.error("ai_failed", e);
       return json({ recommendations: fallback(metrics, benchmarks), benchmarks, source: "fallback_after_error" });
     }
-
-    const claudeJson = await claudeRes.json();
-    const text: string = claudeJson?.content?.[0]?.text ?? "";
     let recs: string[] = [];
     try {
       const match = text.match(/\[[\s\S]*\]/);

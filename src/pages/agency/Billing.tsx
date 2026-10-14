@@ -191,7 +191,6 @@ export default function AgencyBilling() {
     <div className="space-y-6 animate-fade-in max-w-5xl">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">ABILL-01</div>
           <h1 className="text-3xl font-bold mt-1">Agency billing</h1>
           <p className="text-muted-foreground mt-1">Manage your agency plan, seats, and reseller revenue.</p>
         </div>

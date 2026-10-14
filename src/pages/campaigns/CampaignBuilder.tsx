@@ -12,6 +12,7 @@ import { StepName, type CampaignType } from "./components/StepName";
 import { StepTrigger, type TriggerConfig } from "./components/StepTrigger";
 import { StepRequest, type RequestConfig } from "./components/StepRequest";
 import { StepReview } from "./components/StepReview";
+import { markFirstInvalid } from "@/components/forms/RequiredField";
 
 const db = supabase as any;
 
@@ -63,11 +64,13 @@ export default function CampaignBuilder() {
     if (!name.trim()) {
       toast({ title: "Name required", variant: "destructive" });
       setStep(0);
+      setTimeout(() => markFirstInvalid(document.querySelector<HTMLElement>("[data-campaign-step]")), 0);
       return;
     }
     if (!(request.subject ?? "").trim()) {
       toast({ title: "Email subject required", variant: "destructive" });
       setStep(2);
+      setTimeout(() => markFirstInvalid(document.querySelector<HTMLElement>("[data-campaign-step]")), 0);
       return;
     }
     setSaving(true);
@@ -131,7 +134,7 @@ export default function CampaignBuilder() {
         <CardHeader>
           <CardTitle className="text-base">{STEPS[step]}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent data-campaign-step>
           {step === 0 && <StepName name={name} type={type} onChange={(p) => { if (p.name !== undefined) setName(p.name); if (p.type) setType(p.type); }} />}
           {step === 1 && <StepTrigger type={type} config={trigger} onChange={(p) => setTrigger((c) => ({ ...c, ...p }))} />}
           {step === 2 && <StepRequest type={type} config={request} onChange={(p) => setRequest((c) => ({ ...c, ...p }))} />}

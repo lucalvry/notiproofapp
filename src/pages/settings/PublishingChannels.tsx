@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { InfoTip } from "@/components/help/InfoTip";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RequiredLabel, FieldHint } from "@/components/forms/RequiredField";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -205,16 +207,16 @@ export default function PublishingChannelsSettings() {
               />
             </div>
             <div className="space-y-2">
-              <Label>API key / access token</Label>
+              <RequiredLabel>API key / access token</RequiredLabel>
               <Input
                 type="password"
+                required
                 value={draft.api_key}
                 onChange={(e) => setDraft({ ...draft, api_key: e.target.value })}
                 placeholder="Paste from provider dashboard"
+                aria-invalid={!draft.api_key.trim()}
               />
-              <p className="text-xs text-muted-foreground">
-                Stored encrypted server-side. Used only when you publish.
-              </p>
+              <FieldHint>From the provider's dashboard — stored encrypted server-side and used only when you publish.</FieldHint>
             </div>
           </div>
           <DialogFooter>

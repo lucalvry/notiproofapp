@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Loader2, Plus, RefreshCw, Star, Trash2 } from "lucide-react";
-import { planByKey } from "@/lib/plans";
+import { usePlan } from "@/lib/plan-helpers";
 import { domainSchema } from "@/lib/validation";
 
 interface DomainRow {
@@ -46,8 +46,8 @@ export function DomainsCard() {
   const { toast } = useToast();
   const canEdit = currentBusinessRole === "owner" || currentBusinessRole === "editor";
   const business = businesses.find((b) => b.id === currentBusinessId);
-  const planKey = (business?.plan ?? business?.plan_tier ?? "free") as string;
-  const plan = planByKey(planKey);
+  void business;
+  const { plan } = usePlan();
 
   const [rows, setRows] = useState<DomainRow[]>([]);
   const [loading, setLoading] = useState(true);

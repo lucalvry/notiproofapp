@@ -322,7 +322,6 @@ export default function Health() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">ADM-05</div>
           <h1 className="text-3xl font-bold mt-1">System health</h1>
           <p className="text-muted-foreground mt-1">
             Service status, integration delivery rates, and replay tools.

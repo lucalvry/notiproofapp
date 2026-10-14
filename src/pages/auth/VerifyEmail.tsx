@@ -16,10 +16,10 @@ export default function VerifyEmail() {
   // Auto-redirect once the user clicks the email link in another tab and a session appears.
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_evt, session) => {
-      if (session?.user) navigate("/onboarding/connect", { replace: true });
+      if (session?.user) navigate("/dashboard?setup=auto", { replace: true });
     });
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.user) navigate("/onboarding/connect", { replace: true });
+      if (data.session?.user) navigate("/dashboard?setup=auto", { replace: true });
     });
     return () => sub.subscription.unsubscribe();
   }, [navigate]);

@@ -165,7 +165,6 @@ export default function AdminBusinesses() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">ADM-02</div>
         <h1 className="text-3xl font-bold mt-1">Businesses</h1>
         <p className="text-muted-foreground mt-1">
           Search and manage every business on the platform.

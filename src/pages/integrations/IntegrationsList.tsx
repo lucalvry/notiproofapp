@@ -19,6 +19,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Plus, Settings as SettingsIcon, Trash2 } from "lucide-react";
+import { InfoTip } from "@/components/help/InfoTip";
 import type { Database } from "@/integrations/supabase/types";
 import { ReadOnlyBanner } from "@/components/layouts/ReadOnlyBanner";
 import { WooCommerceConnectDialog } from "@/components/integrations/WooCommerceConnectDialog";
@@ -93,6 +94,7 @@ const statusVariant: Record<string, "default" | "secondary" | "destructive" | "o
 };
 
 interface AvailableEntry {
+  term?: string;
   id: Provider;
   label: string;
   description: string;
@@ -102,13 +104,13 @@ interface AvailableEntry {
 // Stripe is intentionally excluded — it's used internally for NotiProof's own
 // subscription billing (see /settings/billing), not as a customer-facing integration.
 const available: AvailableEntry[] = [
-  { id: "shopify", label: "Shopify", description: "Orders and reviews" },
-  { id: "woocommerce", label: "WooCommerce", description: "WordPress store events" },
-  { id: "google_reviews", label: "Google Reviews", description: "Public reviews" },
-  { id: "trustpilot", label: "Trustpilot", description: "Customer reviews" },
-  { id: "g2", label: "G2", description: "B2B software reviews" },
-  { id: "zapier", label: "Zapier", description: "5,000+ app triggers" },
-  { id: "webhook", label: "Webhook", description: "Custom event source" },
+  { id: "shopify", label: "Shopify", description: "Orders and reviews", term: "shopifyIntegration" },
+  { id: "woocommerce", label: "WooCommerce", description: "WordPress store events", term: "woocommerceIntegration" },
+  { id: "google_reviews", label: "Google Reviews", description: "Public reviews", term: "googleReviewsIntegration" },
+  { id: "trustpilot", label: "Trustpilot", description: "Customer reviews", term: "trustpilotIntegration" },
+  { id: "g2", label: "G2", description: "B2B software reviews", term: "g2Integration" },
+  { id: "zapier", label: "Zapier", description: "5,000+ app triggers", term: "zapierIntegration" },
+  { id: "webhook", label: "Webhook", description: "Custom event source", term: "webhookIntegration" },
 ];
 
 interface IntegrationStat {
@@ -216,8 +218,7 @@ export default function IntegrationsList() {
     <div className="space-y-6 animate-fade-in">
       <ReadOnlyBanner />
       <div>
-        <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">INT-01</div>
-        <h1 className="text-3xl font-bold mt-1">Integrations</h1>
+        <h1 className="text-3xl font-bold mt-1 flex items-center gap-2">Integrations <InfoTip term="integration" /></h1>
         <p className="text-muted-foreground mt-1">
           Connect data sources to feed proof into NotiProof.
         </p>

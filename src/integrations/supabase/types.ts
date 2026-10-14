@@ -400,6 +400,54 @@ export type Database = {
           },
         ]
       }
+      ai_job_failures: {
+        Row: {
+          attempts: number
+          business_id: string | null
+          created_at: string
+          id: string
+          payload: Json
+          provider_errors: Json
+          reported_by_user: boolean
+          resolved_at: string | null
+          status: string
+          task: string
+          updated_at: string
+          user_id: string | null
+          user_note: string | null
+        }
+        Insert: {
+          attempts?: number
+          business_id?: string | null
+          created_at?: string
+          id?: string
+          payload?: Json
+          provider_errors?: Json
+          reported_by_user?: boolean
+          resolved_at?: string | null
+          status?: string
+          task: string
+          updated_at?: string
+          user_id?: string | null
+          user_note?: string | null
+        }
+        Update: {
+          attempts?: number
+          business_id?: string | null
+          created_at?: string
+          id?: string
+          payload?: Json
+          provider_errors?: Json
+          reported_by_user?: boolean
+          resolved_at?: string | null
+          status?: string
+          task?: string
+          updated_at?: string
+          user_id?: string | null
+          user_note?: string | null
+        }
+        Relationships: []
+      }
       analytics_snapshots: {
         Row: {
           created_at: string
@@ -654,6 +702,7 @@ export type Database = {
           trial_ends_at: string | null
           updated_at: string
           website_url: string | null
+          widget_last_seen_at: string | null
         }
         Insert: {
           account_type?: string
@@ -687,6 +736,7 @@ export type Database = {
           trial_ends_at?: string | null
           updated_at?: string
           website_url?: string | null
+          widget_last_seen_at?: string | null
         }
         Update: {
           account_type?: string
@@ -720,6 +770,7 @@ export type Database = {
           trial_ends_at?: string | null
           updated_at?: string
           website_url?: string | null
+          widget_last_seen_at?: string | null
         }
         Relationships: []
       }
@@ -1016,6 +1067,66 @@ export type Database = {
           id?: number
           metadata?: Json
           status?: string
+        }
+        Relationships: []
+      }
+      email_sends: {
+        Row: {
+          business_id: string | null
+          created_at: string
+          email: string
+          id: string
+          meta: Json
+          template: string
+          user_id: string | null
+        }
+        Insert: {
+          business_id?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          meta?: Json
+          template: string
+          user_id?: string | null
+        }
+        Update: {
+          business_id?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          meta?: Json
+          template?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_sends_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_sends_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_unsubscribes: {
+        Row: {
+          created_at: string
+          email: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
         }
         Relationships: []
       }
@@ -2274,6 +2385,18 @@ export type Database = {
           schedule: string
         }[]
       }
+      admin_recent_email_sends: {
+        Args: { p_limit?: number }
+        Returns: {
+          business_id: string
+          created_at: string
+          email: string
+          id: string
+          meta: Json
+          template: string
+          user_id: string
+        }[]
+      }
       admin_replay_integration_event: {
         Args: { _event_id: string }
         Returns: boolean
@@ -2306,6 +2429,7 @@ export type Database = {
         Returns: boolean
       }
       business_plan_usage: { Args: { _business_id: string }; Returns: Json }
+      business_trial_ended: { Args: { _business_id: string }; Returns: boolean }
       can_activate_widget: {
         Args: { _business_id: string; _exclude_widget?: string }
         Returns: boolean
@@ -2462,6 +2586,10 @@ export type Database = {
         Returns: boolean
       }
       referrer_display_name: { Args: { _code: string }; Returns: string }
+      report_ai_failure: {
+        Args: { _id: string; _note?: string }
+        Returns: undefined
+      }
       retry_failed_product_image_enrichment: { Args: never; Returns: number }
       submit_testimonial_request:
         | {

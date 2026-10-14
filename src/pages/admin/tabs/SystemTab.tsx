@@ -1,3 +1,4 @@
+import AiFailuresCard from "./AiFailuresCard";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,6 +65,7 @@ export default function SystemTab() {
 
   return (
     <div className="space-y-6">
+      <AiFailuresCard />
       {/* pg_cron jobs */}
       <Card>
         <CardHeader>
@@ -164,7 +166,7 @@ export default function SystemTab() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-3">
-            Integration health, edge function logs and the older ADM-05 view are still available
+            Integration health, edge function logs and the older health view are still available
             on the dedicated health page.
           </p>
           <Button asChild variant="outline">

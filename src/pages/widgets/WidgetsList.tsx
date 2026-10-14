@@ -1,3 +1,5 @@
+import { useTrialGate } from "@/hooks/useTrialGate";
+import { InfoTip } from "@/components/help/InfoTip";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,13 +22,17 @@ const statusVariant: Record<string, "default" | "secondary" | "outline"> = {
   active: "default", draft: "outline", paused: "secondary",
 };
 
+const LIVE_WINDOW_MS = 2 * 24 * 60 * 60 * 1000;
+
 export default function WidgetsList() {
+  const trialGate = useTrialGate();
   const { currentBusinessId, currentBusinessRole } = useAuth();
   const canEdit = currentBusinessRole === "owner" || currentBusinessRole === "editor";
   const { toast } = useToast();
   const { plan, usage, atActiveWidgetLimit } = usePlanUsage();
   const [items, setItems] = useState<Widget[]>([]);
   const [impressions, setImpressions] = useState<Record<string, number>>({});
+  const [liveStatus, setLiveStatus] = useState<{ verified: boolean; lastSeenAt: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [duplicating, setDuplicating] = useState<string | null>(null);
 
@@ -48,6 +54,17 @@ export default function WidgetsList() {
         const counts: Record<string, number> = {};
         (ev ?? []).forEach((e) => { counts[e.widget_id] = (counts[e.widget_id] ?? 0) + 1; });
         setImpressions(counts);
+      }
+      const { data: biz } = await supabase
+        .from("businesses")
+        .select("install_verified, widget_last_seen_at")
+        .eq("id", currentBusinessId)
+        .maybeSingle();
+      if (biz) {
+        setLiveStatus({
+          verified: !!(biz as any).install_verified,
+          lastSeenAt: (biz as any).widget_last_seen_at ?? null,
+        });
       }
       setLoading(false);
     })();
@@ -81,8 +98,7 @@ export default function WidgetsList() {
       <ReadOnlyBanner />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">WID-01</div>
-          <h1 className="text-3xl font-bold mt-1">Widgets</h1>
+          <h1 className="text-3xl font-bold mt-1 flex items-center gap-2">Widgets <InfoTip term="widgets" /></h1>
           <p className="text-muted-foreground mt-1">Build and manage widgets that display your social proof.</p>
         </div>
         {canEdit && (
@@ -102,7 +118,7 @@ export default function WidgetsList() {
               </Tooltip>
             </TooltipProvider>
           ) : (
-            <Button asChild><Link to="/widgets/new"><Plus className="h-4 w-4 mr-2" /> New widget</Link></Button>
+            <Button asChild><Link to="/widgets/new" onClick={(e) => { if (!trialGate.requireActive()) e.preventDefault(); }}><Plus className="h-4 w-4 mr-2" /> New widget</Link></Button>
           )
         )}
       </div>
@@ -125,20 +141,37 @@ export default function WidgetsList() {
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 text-accent mb-4"><MonitorSmartphone className="h-6 w-6" /></div>
               <h3 className="font-semibold">No widgets yet</h3>
               <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">Create your first widget to start showing social proof on your site.</p>
-              {canEdit && <Button asChild className="mt-4"><Link to="/widgets/new"><Plus className="h-4 w-4 mr-2" /> Create widget</Link></Button>}
+              {canEdit && <Button asChild className="mt-4"><Link to="/widgets/new" onClick={(e) => { if (!trialGate.requireActive()) e.preventDefault(); }}><Plus className="h-4 w-4 mr-2" /> Create widget</Link></Button>}
             </div>
           ) : (
             <div className="rounded-md border">
               <Table>
                 <TableHeader><TableRow>
-                  <TableHead>Name</TableHead><TableHead>Type</TableHead><TableHead>Status</TableHead><TableHead>Impressions</TableHead><TableHead>Created</TableHead><TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Name</TableHead><TableHead><span className="inline-flex items-center gap-1">Type <InfoTip term="widgetType" /></span></TableHead><TableHead><span className="inline-flex items-center gap-1">Status <InfoTip term="widgetStatus" /></span></TableHead><TableHead><span className="inline-flex items-center gap-1">Impressions <InfoTip term="impressions" /></span></TableHead><TableHead>Created</TableHead><TableHead className="text-right">Actions</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
                   {items.map((w) => (
                     <TableRow key={w.id}>
                       <TableCell className="font-medium">{w.name}</TableCell>
                       <TableCell><span className="capitalize text-sm">{w.type}</span></TableCell>
-                      <TableCell><Badge variant={statusVariant[w.status]} className="capitalize">{w.status}</Badge></TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          <Badge variant={statusVariant[w.status]} className="capitalize">{w.status}</Badge>
+                          {w.status === "active" && (
+                            (() => {
+                              const isLive =
+                                !!liveStatus?.verified &&
+                                !!liveStatus?.lastSeenAt &&
+                                Date.now() - new Date(liveStatus.lastSeenAt).getTime() < LIVE_WINDOW_MS;
+                              return isLive ? (
+                                <Badge variant="default" className="w-fit bg-success text-success-foreground hover:bg-success">Live on site</Badge>
+                              ) : (
+                                <Badge variant="outline" className="w-fit text-muted-foreground">Switched on – not yet detected</Badge>
+                              );
+                            })()
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{(impressions[w.id] ?? 0).toLocaleString()}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{new Date(w.created_at).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">

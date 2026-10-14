@@ -1,3 +1,4 @@
+import type React from "react";
 import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,10 +13,13 @@ interface BusinessSummary {
   install_verified?: boolean;
   suspended_at?: string | null;
   logo_url?: string | null;
+  favicon_url?: string | null;
   /** Plan column on `businesses`. */
   plan?: string | null;
   /** Legacy alias kept for older components reading `plan_tier`. */
   plan_tier?: string | null;
+  /** Free trial end; set at the first live widget impression. */
+  trial_ends_at?: string | null;
 }
 
 interface UserProfile {
@@ -48,7 +52,11 @@ interface AuthContextValue {
   stopImpersonation: () => void;
 }
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+// Keep one context instance across hot reloads so the provider and consumers never get out of sync.
+const globalCtx = globalThis as unknown as { __notiproofAuthContext?: React.Context<AuthContextValue | undefined> };
+const AuthContext =
+  globalCtx.__notiproofAuthContext ??
+  (globalCtx.__notiproofAuthContext = createContext<AuthContextValue | undefined>(undefined));
 const IMPERSONATION_KEY = "notiproof.impersonation";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -90,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabase.from("users").select("*").eq("id", userId).maybeSingle(),
       supabase
         .from("business_users")
-        .select("role, business_id, businesses(id, name, install_verified, logo_url, plan)")
+        .select("role, business_id, businesses(id, name, install_verified, logo_url, favicon_url, plan, trial_ends_at)")
         .eq("user_id", userId),
     ]);
 
@@ -104,8 +112,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         install_verified: row.businesses.install_verified,
         suspended_at: row.businesses.suspended_at ?? null,
         logo_url: row.businesses.logo_url,
+        favicon_url: row.businesses.favicon_url ?? null,
         plan: row.businesses.plan ?? null,
         plan_tier: row.businesses.plan ?? null,
+        trial_ends_at: row.businesses.trial_ends_at ?? null,
       } : null)
       .filter(Boolean) as BusinessSummary[];
     setBusinesses(list);

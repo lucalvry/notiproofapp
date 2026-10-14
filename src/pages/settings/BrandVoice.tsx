@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Loader2, X } from "lucide-react";
+import { Save, Loader2, X, Sparkles } from "lucide-react";
+import { triggerSiteAnalysis } from "@/components/onboarding/GuidedSetup/utils";
 import { ReadOnlyBanner } from "@/components/layouts/ReadOnlyBanner";
 
 const TONES = [
@@ -29,6 +30,15 @@ interface BrandVoiceRow {
   voice_examples: string | null;
   avoid_words: string[];
   use_words: string[];
+}
+
+interface BusinessProfile {
+  target_audience?: string;
+  customers?: string;
+  problems_solved?: string;
+  how_customers_search?: string;
+  brand_tone?: string;
+  industry?: string;
 }
 
 function WordList({
@@ -104,30 +114,72 @@ export default function BrandVoiceSettings() {
   const [saving, setSaving] = useState(false);
   const [row, setRow] = useState<BrandVoiceRow | null>(null);
 
+  // Business DNA fields — sourced from business_profile (AI-extracted) and
+  // editable here; saved back onto businesses.business_profile.
+  const [targetAudience, setTargetAudience] = useState("");
+  const [problemsSolved, setProblemsSolved] = useState("");
+  const [howCustomersSearch, setHowCustomersSearch] = useState("");
+
+  const [websiteUrl, setWebsiteUrl] = useState<string | null>(null);
+  const [hasProfile, setHasProfile] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+
   useEffect(() => {
     if (!currentBusinessId) return;
     setLoading(true);
-    (supabase as any)
-      .from("business_brand_voice")
-      .select("*")
+    void (supabase as any)
+      .from("ai_job_failures")
+      .select("id")
       .eq("business_id", currentBusinessId)
-      .maybeSingle()
-      .then(({ data }: any) => {
-        setRow(
-          data ?? {
-            business_id: currentBusinessId,
-            default_tone: "professional",
-            voice_examples: "",
-            avoid_words: [],
-            use_words: [],
-          }
-        );
-        setLoading(false);
-      });
-  }, [currentBusinessId]);
+      .eq("task", "brand_dna")
+      .eq("status", "pending")
+      .limit(1)
+      .then(({ data }: any) => setFailed((data ?? []).length > 0));
+    Promise.all([
+      (supabase as any)
+        .from("business_brand_voice")
+        .select("*")
+        .eq("business_id", currentBusinessId)
+        .maybeSingle(),
+      (supabase as any)
+        .from("businesses")
+        .select("business_profile, website_url")
+        .eq("id", currentBusinessId)
+        .maybeSingle(),
+    ]).then(([{ data: voiceData }, { data: bizData }]: any[]) => {
+      const profile: BusinessProfile = bizData?.business_profile ?? {};
+      setWebsiteUrl(bizData?.website_url ?? null);
+      setHasProfile(!!(profile.target_audience || profile.problems_solved || profile.brand_tone));
+      setRow(
+        voiceData ?? {
+          business_id: currentBusinessId,
+          default_tone: /^(professional|friendly|playful|bold|minimal|luxury)$/.test(profile.brand_tone ?? "")
+            ? (profile.brand_tone as string)
+            : "professional",
+          voice_examples: "",
+          avoid_words: [],
+          use_words: [],
+        }
+      );
+      setTargetAudience(profile.target_audience || profile.customers || "");
+      setProblemsSolved(profile.problems_solved || "");
+      setHowCustomersSearch(profile.how_customers_search || "");
+      setLoading(false);
+    });
+  }, [currentBusinessId, reloadKey]);
+
+  const reanalyze = async () => {
+    if (!currentBusinessId || !websiteUrl) return;
+    setAnalyzing(true);
+    await triggerSiteAnalysis(currentBusinessId, websiteUrl, toast);
+    setAnalyzing(false);
+    setReloadKey((k) => k + 1);
+  };
 
   const save = async () => {
-    if (!row) return;
+    if (!row || !currentBusinessId) return;
     setSaving(true);
     const payload = {
       business_id: row.business_id,
@@ -136,11 +188,24 @@ export default function BrandVoiceSettings() {
       avoid_words: row.avoid_words,
       use_words: row.use_words,
     };
-    const { error } = await (supabase as any)
-      .from("business_brand_voice")
-      .upsert(payload, { onConflict: "business_id" });
+    const [{ error: voiceErr }, { data: bizData }] = await Promise.all([
+      (supabase as any).from("business_brand_voice").upsert(payload, { onConflict: "business_id" }),
+      (supabase as any).from("businesses").select("business_profile").eq("id", currentBusinessId).maybeSingle(),
+    ]);
+    if (!voiceErr) {
+      const mergedProfile = {
+        ...(bizData?.business_profile ?? {}),
+        target_audience: targetAudience.trim() || undefined,
+        problems_solved: problemsSolved.trim() || undefined,
+        how_customers_search: howCustomersSearch.trim() || undefined,
+      };
+      await (supabase as any)
+        .from("businesses")
+        .update({ business_profile: mergedProfile })
+        .eq("id", currentBusinessId);
+    }
     setSaving(false);
-    if (error) return toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    if (voiceErr) return toast({ title: "Save failed", description: voiceErr.message, variant: "destructive" });
     toast({ title: "Brand voice saved" });
   };
 
@@ -149,6 +214,66 @@ export default function BrandVoiceSettings() {
   return (
     <div className="w-full space-y-4">
       <ReadOnlyBanner />
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Business DNA</CardTitle>
+          <CardDescription>
+            Who you serve and what you solve for them. AI reads your website as soon as you add your business and pre-fills this — review and tweak it below.
+          </CardDescription>
+          <div className="flex flex-wrap items-center gap-2 pt-2">
+            {analyzing ? (
+              <Badge variant="secondary"><Loader2 className="h-3 w-3 mr-1 animate-spin" />Analyzing your website…</Badge>
+            ) : failed ? (
+              <Badge variant="destructive">Last extraction failed — not your fault. Our team can see it; you can also retry</Badge>
+            ) : hasProfile ? (
+              <Badge variant="secondary">Extracted from your website</Badge>
+            ) : (
+              <Badge variant="outline">Not extracted yet</Badge>
+            )}
+            <Button size="sm" variant="outline" onClick={reanalyze} disabled={!canEdit || analyzing || !websiteUrl}>
+              <Sparkles className="h-4 w-4 mr-2" />
+              {hasProfile ? "Re-analyze website" : "Analyze website"}
+            </Button>
+            {!websiteUrl && <span className="text-xs text-muted-foreground">Add your website in Settings → Business first.</span>}
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="space-y-2">
+            <Label>Target audience & customers</Label>
+            <Textarea
+              value={targetAudience}
+              onChange={(e) => setTargetAudience(e.target.value)}
+              placeholder="e.g. Small e-commerce brands with 2-20 employees selling physical products online."
+              rows={3}
+              maxLength={1000}
+              disabled={!canEdit}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Problems you solve / value you provide</Label>
+            <Textarea
+              value={problemsSolved}
+              onChange={(e) => setProblemsSolved(e.target.value)}
+              placeholder="e.g. Helps stores turn customer reviews into social proof that boosts conversion."
+              rows={3}
+              maxLength={1000}
+              disabled={!canEdit}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>How customers search for you</Label>
+            <Textarea
+              value={howCustomersSearch}
+              onChange={(e) => setHowCustomersSearch(e.target.value)}
+              placeholder="e.g. 'social proof widget for Shopify', 'show live sales notifications on my site'"
+              rows={2}
+              maxLength={500}
+              disabled={!canEdit}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Brand voice</CardTitle>

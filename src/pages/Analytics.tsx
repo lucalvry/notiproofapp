@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
@@ -23,6 +25,7 @@ import {
 } from "recharts";
 import { BarChart3, ArrowUpDown, TrendingUp, Lock, Sparkles } from "lucide-react";
 import { usePlan } from "@/lib/plan-helpers";
+import { InfoTip } from "@/components/help/InfoTip";
 import { Link } from "react-router-dom";
 
 interface Bucket {
@@ -69,6 +72,15 @@ export default function Analytics() {
     const max = Math.min(30, retentionDays);
     return String(max);
   });
+  const oldestAllowed = useMemo(() => {
+    if (!isFinite(retentionDays)) return null;
+    const d = new Date();
+    d.setDate(d.getDate() - retentionDays);
+    return d;
+  }, [retentionDays]);
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
+  const [customClamped, setCustomClamped] = useState(false);
   const [data, setData] = useState<Bucket[] | null>(null);
   const [proofByType, setProofByType] = useState<ProofTypeSlice[] | null>(null);
   const [topProof, setTopProof] = useState<TopProofRow[] | null>(null);
@@ -88,9 +100,24 @@ export default function Analytics() {
     setTopProof(null);
     setResponseRate(null);
 
-    const end = new Date();
-    const start = new Date();
-    start.setDate(start.getDate() - Number(range));
+    let start: Date;
+    let end: Date;
+    if (range === "custom") {
+      end = customEnd ? new Date(customEnd) : new Date();
+      start = customStart ? new Date(customStart) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      if (oldestAllowed && start < oldestAllowed) {
+        start = oldestAllowed;
+        setCustomClamped(true);
+      } else {
+        setCustomClamped(false);
+      }
+      if (start > end) start = new Date(end.getTime());
+    } else {
+      end = new Date();
+      start = new Date();
+      start.setDate(start.getDate() - Number(range));
+      setCustomClamped(false);
+    }
     const startIso = start.toISOString();
     const endIso = end.toISOString();
 
@@ -173,7 +200,7 @@ export default function Analytics() {
       }));
       setTopProof(top);
     });
-  }, [currentBusinessId, range]);
+  }, [currentBusinessId, range, customStart, customEnd, oldestAllowed]);
 
   const totals = useMemo(
     () =>
@@ -208,23 +235,63 @@ export default function Analytics() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">ANA-01</div>
           <h1 className="text-3xl font-bold mt-1">Analytics</h1>
           <p className="text-muted-foreground mt-1">
             Impressions, interactions, conversions, and proof performance.
           </p>
         </div>
-        <Select value={range} onValueChange={setRange}>
-          <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {rangeOptions.map((o) => (
-              <SelectItem key={o.value} value={o.value} disabled={o.locked}>
-                {o.label}{o.locked ? " — paid plans" : ""}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-col items-end gap-2">
+          <Select value={range} onValueChange={setRange}>
+            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {rangeOptions.map((o) => (
+                <SelectItem key={o.value} value={o.value} disabled={o.locked}>
+                  {o.label}{o.locked ? " — paid plans" : ""}
+                </SelectItem>
+              ))}
+              <SelectItem value="custom">Custom range</SelectItem>
+            </SelectContent>
+          </Select>
+          {range === "custom" && (
+            <div className="flex items-end gap-2">
+              <div className="space-y-1">
+                <Label htmlFor="custom-start" className="text-xs text-muted-foreground">Start</Label>
+                <Input
+                  id="custom-start"
+                  type="date"
+                  value={customStart}
+                  min={oldestAllowed ? oldestAllowed.toISOString().slice(0, 10) : undefined}
+                  max={customEnd || new Date().toISOString().slice(0, 10)}
+                  onChange={(e) => setCustomStart(e.target.value)}
+                  className="w-[150px]"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="custom-end" className="text-xs text-muted-foreground">End</Label>
+                <Input
+                  id="custom-end"
+                  type="date"
+                  value={customEnd}
+                  min={customStart || undefined}
+                  max={new Date().toISOString().slice(0, 10)}
+                  onChange={(e) => setCustomEnd(e.target.value)}
+                  className="w-[150px]"
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+
+      {range === "custom" && customClamped && (
+        <div className="flex items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm">
+          <Lock className="h-4 w-4 text-amber-600 shrink-0" />
+          <p className="flex-1">
+            Your {plan.name} plan only keeps analytics for {retentionDays} days, so the start date was moved up.{" "}
+            <Link to="/settings/billing" className="underline font-medium">Upgrade</Link> for longer retention.
+          </p>
+        </div>
+      )}
 
       {isFinite(retentionDays) && (
         <div className="flex items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm">
@@ -247,10 +314,11 @@ export default function Analytics() {
         <TabsContent value="widgets" className="space-y-6">
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Widget impressions" value={isLoading ? null : totals.impressions.toLocaleString()} />
-        <StatCard label="Widget interactions" value={isLoading ? null : totals.interactions.toLocaleString()} />
+        <StatCard label="Widget impressions" term="impressions" value={isLoading ? null : totals.impressions.toLocaleString()} />
+        <StatCard label="Widget interactions" term="interactions" value={isLoading ? null : totals.interactions.toLocaleString()} />
         <StatCard
           label="Assisted conversions"
+          term="assists"
           value={isLoading ? null : totals.assists.toLocaleString()}
           sub={isLoading ? undefined : `${totals.conversions.toLocaleString()} direct conversions`}
         />
@@ -430,11 +498,12 @@ export default function Analytics() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground">
-                      <th className="px-2 py-2 font-medium">Author</th>
-                      <th className="px-2 py-2 font-medium">Type</th>
+                      <th className="px-2 py-2 font-medium"><span className="inline-flex items-center gap-1">Author<InfoTip term="author" /></span></th>
+                      <th className="px-2 py-2 font-medium"><span className="inline-flex items-center gap-1">Type<InfoTip term="proofType" /></span></th>
                       <th className="px-2 py-2 font-medium text-right">
                         <SortHeader
                           label="Impressions"
+                          term="impressions"
                           active={sortKey === "impressions"}
                           onClick={() => setSortKey("impressions")}
                         />
@@ -442,6 +511,7 @@ export default function Analytics() {
                       <th className="px-2 py-2 font-medium text-right">
                         <SortHeader
                           label="Interactions"
+                          term="interactions"
                           active={sortKey === "interactions"}
                           onClick={() => setSortKey("interactions")}
                         />
@@ -449,6 +519,7 @@ export default function Analytics() {
                       <th className="px-2 py-2 font-medium text-right">
                         <SortHeader
                           label="Conversions"
+                          term="conversions"
                           active={sortKey === "conversions"}
                           onClick={() => setSortKey("conversions")}
                         />
@@ -456,6 +527,7 @@ export default function Analytics() {
                       <th className="px-2 py-2 font-medium text-right">
                         <SortHeader
                           label="Assists"
+                          term="assists"
                           active={sortKey === "assists"}
                           onClick={() => setSortKey("assists")}
                         />
@@ -497,18 +569,31 @@ export default function Analytics() {
         </TabsContent>
 
         <TabsContent value="content" className="space-y-6">
-          <ContentAnalyticsTab businessId={currentBusinessId} startIso={(() => { const d = new Date(); d.setDate(d.getDate() - Number(range)); return d.toISOString(); })()} endIso={new Date().toISOString()} />
+          <ContentAnalyticsTab
+            businessId={currentBusinessId}
+            startIso={(() => {
+              if (range === "custom" && customStart) {
+                let d = new Date(customStart);
+                if (oldestAllowed && d < oldestAllowed) d = oldestAllowed;
+                return d.toISOString();
+              }
+              const d = new Date();
+              d.setDate(d.getDate() - Number(range === "custom" ? 30 : range));
+              return d.toISOString();
+            })()}
+            endIso={range === "custom" && customEnd ? new Date(customEnd).toISOString() : new Date().toISOString()}
+          />
         </TabsContent>
       </Tabs>
     </div>
   );
 }
 
-function StatCard({ label, value, sub }: { label: string; value: string | null; sub?: string }) {
+function StatCard({ label, value, sub, term }: { label: string; value: string | null; sub?: string; term?: Parameters<typeof InfoTip>[0]["term"] }) {
   return (
     <Card>
       <CardContent className="pt-6">
-        <div className="text-sm text-muted-foreground">{label}</div>
+        <div className="text-sm text-muted-foreground inline-flex items-center gap-1">{label}{term && <InfoTip term={term} />}</div>
         <div className="text-2xl font-bold mt-1">
           {value === null ? <Skeleton className="h-7 w-20" /> : value}
         </div>
@@ -536,22 +621,27 @@ function SortHeader({
   label,
   active,
   onClick,
+  term,
 }: {
   label: string;
   active: boolean;
   onClick: () => void;
+  term?: Parameters<typeof InfoTip>[0]["term"];
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex items-center gap-1 hover:text-foreground transition-colors ${
-        active ? "text-foreground" : ""
-      }`}
-    >
-      {label}
-      <ArrowUpDown className="h-3 w-3" />
-    </button>
+    <span className="inline-flex items-center gap-1">
+      <button
+        type="button"
+        onClick={onClick}
+        className={`inline-flex items-center gap-1 hover:text-foreground transition-colors ${
+          active ? "text-foreground" : ""
+        }`}
+      >
+        {label}
+        <ArrowUpDown className="h-3 w-3" />
+      </button>
+      {term && <InfoTip term={term} />}
+    </span>
   );
 }
 

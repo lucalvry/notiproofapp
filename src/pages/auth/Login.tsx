@@ -6,6 +6,7 @@ import { AuthLayout } from "@/components/layouts/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RequiredLabel, FieldHint, markFirstInvalid } from "@/components/forms/RequiredField";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { useToast } from "@/hooks/use-toast";
@@ -78,7 +79,7 @@ export default function Login() {
 
     const rows = (memberships ?? []).map((m: any) => m.businesses).filter(Boolean);
     if (rows.length === 0) {
-      navigate("/onboarding/connect", { replace: true });
+      navigate("/dashboard?setup=auto", { replace: true });
       return;
     }
     const allSuspended = rows.every((b: any) => !!b.suspended_at);
@@ -109,7 +110,7 @@ export default function Login() {
     }
 
     const needsOnboarding = rows.some((b: any) => !b.onboarding_completed && !b.suspended_at);
-    navigate(needsOnboarding ? "/onboarding/connect" : from, { replace: true });
+    navigate(needsOnboarding ? "/dashboard?setup=auto" : from, { replace: true });
   };
 
 
@@ -118,6 +119,7 @@ export default function Login() {
     const parsed = parseOrError(loginSchema, { email, password });
     if (parsed.error) {
       toast({ title: "Check your details", description: parsed.error, variant: "destructive" });
+      markFirstInvalid(e.currentTarget as HTMLFormElement);
       return;
     }
     // Persist the "Remember me" preference BEFORE sign-in so the storage adapter
@@ -184,15 +186,16 @@ export default function Login() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" required maxLength={254} value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" inputMode="email" />
+          <RequiredLabel htmlFor="email">Email</RequiredLabel>
+          <Input id="email" type="email" required maxLength={254} value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" inputMode="email" aria-invalid={!email} />
+          <FieldHint>The email you signed up with.</FieldHint>
         </div>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
+            <RequiredLabel htmlFor="password">Password</RequiredLabel>
             <Link to="/forgot-password" className="text-xs text-accent hover:underline">Forgot password?</Link>
           </div>
-          <PasswordInput id="password" required maxLength={200} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
+          <PasswordInput id="password" required maxLength={200} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" aria-invalid={!password} />
         </div>
         <div className="flex items-center justify-between">
           <label className="flex items-center gap-2 text-sm cursor-pointer select-none">

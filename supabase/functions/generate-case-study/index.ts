@@ -1,3 +1,4 @@
+import { generateText } from '../_shared/ai.ts';
 // EF-02: Generate a long-form case study, streaming tokens via Realtime
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { corsHeaders } from '../_shared/cors.ts';
@@ -22,7 +23,6 @@ Deno.serve(async (req) => {
     const anon = Deno.env.get('SUPABASE_ANON_KEY')!;
     const service = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
-    if (!apiKey) throw new Error('ANTHROPIC_API_KEY not configured');
 
     const userClient = createClient(supabaseUrl, anon, { global: { headers: { Authorization: authHeader } } });
     const { data: userData, error: userErr } = await userClient.auth.getUser(authHeader.replace('Bearer ', ''));
@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
     const userPrompt = `Write a customer case study using these proofs:\n\n${proofText}\n\nSections to include (as H2): ${sections.join(', ')}\n\nReturn the full case study in markdown, no preface.`;
 
     // Stream from Anthropic
-    const anthropicRes = await fetch(ANTHROPIC_URL, {
+    const anthropicRes = !apiKey ? null : await fetch(ANTHROPIC_URL, {
       method: 'POST',
       headers: {
         'x-api-key': apiKey,
@@ -99,18 +99,19 @@ Deno.serve(async (req) => {
         stream: true,
       }),
     });
-    if (!anthropicRes.ok || !anthropicRes.body) {
-      throw new Error(`Anthropic ${anthropicRes.status}: ${await anthropicRes.text()}`);
-    }
-
     const channelName = `casestudy-${business_id}`;
+    const channel = admin.channel(channelName);
+    let full = '';
+    if (!anthropicRes || !anthropicRes.ok || !anthropicRes.body) {
+      // Anthropic unavailable: fall back to OpenAI / Lovable AI (non-streaming).
+      if (anthropicRes) console.warn('anthropic stream failed', anthropicRes.status, await anthropicRes.text());
+      const r = await generateText({ system, user: userPrompt, maxTokens: 4000 });
+      full = r.text;
+      try { await channel.send({ type: 'broadcast', event: 'token', payload: { delta: full } }); } catch (_e) {}
+    } else {
     const reader = anthropicRes.body.getReader();
     const decoder = new TextDecoder();
-    let full = '';
     let buffer = '';
-
-    // Open one realtime channel for the whole stream
-    const channel = admin.channel(channelName);
 
     while (true) {
       const { value, done } = await reader.read();
@@ -133,6 +134,7 @@ Deno.serve(async (req) => {
           }
         } catch (_e) { /* skip malformed */ }
       }
+    }
     }
     try { await admin.removeChannel(channel); } catch (_e) {}
 

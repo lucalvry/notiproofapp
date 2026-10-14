@@ -7,6 +7,9 @@ import "./index.css";
 import { initSentry } from "@/lib/sentry";
 import { initPostHog } from "@/lib/posthog";
 
+import { installTrialFetchGuard } from "@/lib/trial-fetch-guard";
+
+installTrialFetchGuard();
 initSentry();
 initPostHog();
 

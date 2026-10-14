@@ -5,7 +5,7 @@ type PlanKey = "free" | "starter" | "growth" | "agency" | string | null | undefi
 
 const PLAN_STYLES: Record<string, { label: string; className: string }> = {
   free: {
-    label: "Free",
+    label: "Free trial",
     className: "bg-muted text-muted-foreground border-transparent",
   },
   starter: {

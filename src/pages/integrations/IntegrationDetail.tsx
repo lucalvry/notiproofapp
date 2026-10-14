@@ -312,7 +312,6 @@ export default function IntegrationDetail() {
             <ArrowLeft className="h-4 w-4 mr-1" /> Back to integrations
           </Link>
         </Button>
-        <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">INT-02</div>
         <div className="flex items-center gap-3 mt-1">
           <h1 className="text-3xl font-bold capitalize">{integration.provider.replace("_", " ")}</h1>
           <Badge className="capitalize">{integration.status}</Badge>

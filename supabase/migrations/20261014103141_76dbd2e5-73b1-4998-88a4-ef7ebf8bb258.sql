@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.enforce_trial_active() FROM anon, authenticated, public;

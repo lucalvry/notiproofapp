@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.fill_business_website_from_domain() FROM PUBLIC, anon, authenticated;

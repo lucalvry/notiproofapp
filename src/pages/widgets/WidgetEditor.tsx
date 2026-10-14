@@ -19,6 +19,7 @@ import { PreviewRender, type WidgetConfig as SharedWidgetConfig } from "@/compon
 import type { Database } from "@/integrations/supabase/types";
 import { ReadOnlyBanner } from "@/components/layouts/ReadOnlyBanner";
 import { widgetEditorSchema, fieldErrors } from "@/lib/validation";
+import { RequiredLabel, FieldHint, markFirstInvalid } from "@/components/forms/RequiredField";
 import { APP_URL } from "@/lib/app-url";
 
 type Widget = Database["public"]["Tables"]["widgets"]["Row"] & {
@@ -216,6 +217,7 @@ export default function WidgetEditor() {
     });
     if (!validated.ok) {
       const first = Object.values(validated.errors)[0] ?? "Check the highlighted fields";
+      markFirstInvalid(document.getElementById("widget-editor-form") as HTMLFormElement | null);
       return toast({ title: "Check widget settings", description: first, variant: "destructive" });
     }
     // Free plan forces powered_by on
@@ -256,7 +258,6 @@ export default function WidgetEditor() {
       <div className="flex items-center justify-between gap-3">
         <div>
           <Button variant="ghost" size="sm" asChild className="mb-2 -ml-2"><Link to="/widgets"><ArrowLeft className="h-4 w-4 mr-1" /> Back to widgets</Link></Button>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">WID-02</div>
           <h1 className="text-3xl font-bold mt-1">{isNew ? "New widget" : canEdit ? "Edit widget" : "View widget"}</h1>
         </div>
         <Button onClick={save} disabled={saving || !canEdit}>{saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />} Save</Button>
@@ -264,7 +265,7 @@ export default function WidgetEditor() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-6" id="widget-editor-form">
             <Tabs defaultValue="general">
               <TabsList className="grid w-full grid-cols-5 h-auto">
                 <TabsTrigger value="general" className="text-xs sm:text-sm">General</TabsTrigger>
@@ -275,7 +276,11 @@ export default function WidgetEditor() {
               </TabsList>
 
               <TabsContent value="general" className="space-y-4 mt-4">
-                <div className="space-y-2"><Label>Name</Label><Input value={w.name ?? ""} onChange={(e) => setW({ ...w, name: e.target.value })} /></div>
+                <div className="space-y-2">
+                  <RequiredLabel htmlFor="widget-name">Name</RequiredLabel>
+                  <Input id="widget-name" required value={w.name ?? ""} onChange={(e) => setW({ ...w, name: e.target.value })} aria-invalid={!w.name?.trim()} />
+                  <FieldHint>Internal label to tell this widget apart from others — visitors never see it.</FieldHint>
+                </div>
                 <div className="space-y-2"><Label>Widget type</Label>
                   <Select value={variant} onValueChange={(v) => setVariant(v as Variant)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>

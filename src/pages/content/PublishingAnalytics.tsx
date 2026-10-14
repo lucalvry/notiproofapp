@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ContentSubNav } from "./components/ContentSubNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { InfoTip } from "@/components/help/InfoTip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from "recharts";
@@ -73,8 +74,7 @@ export default function PublishingAnalytics() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">PUB-04</div>
-          <h1 className="text-3xl font-bold mt-1">Publishing analytics</h1>
+          <h1 className="text-3xl font-bold mt-1 inline-flex items-center gap-2">Publishing analytics<InfoTip term="publishingAnalytics" /></h1>
           <p className="text-muted-foreground mt-1">Throughput and success across all your publishing channels.</p>
         </div>
         <Select value={String(days)} onValueChange={(v) => setDays(parseInt(v, 10))}>

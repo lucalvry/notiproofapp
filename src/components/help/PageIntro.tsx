@@ -19,6 +19,8 @@ export const PAGE_HELP: { prefix: string; title: string; body: string }[] = [
   { prefix: "/settings/brand-voice", title: "Brand voice", body: "Tell our AI how your brand sounds so generated content matches your style." },
   { prefix: "/settings/referrals", title: "Referrals", body: "Share your link and earn 20% of every payment from people you refer." },
   { prefix: "/settings", title: "Settings", body: "Your business details, email templates, account and preferences." },
+  { prefix: "/agency", title: "Agency", body: "Manage your client businesses, branding and agency billing from one place." },
+  { prefix: "/admin", title: "Admin", body: "Internal tools for managing users, businesses and platform settings." },
 ];
 
 export function helpFor(pathname: string) {

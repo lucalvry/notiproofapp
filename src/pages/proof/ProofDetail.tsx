@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { InfoTip } from "@/components/help/InfoTip";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { isViewer } from "@/lib/roles";
@@ -233,7 +234,6 @@ export default function ProofDetail() {
         <Button variant="ghost" size="sm" asChild className="mb-2 -ml-2"><Link to="/proof"><ArrowLeft className="h-4 w-4 mr-1" /> Back to library</Link></Button>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">PROOF-02</div>
             <h1 className="text-3xl font-bold mt-1">Proof detail</h1>
             <div className="flex items-center gap-2 mt-2">
               <Badge variant={isApproved ? "default" : "secondary"} className="capitalize">{proof.status}</Badge>
@@ -310,9 +310,9 @@ export default function ProofDetail() {
       <Card>
         <CardHeader><CardTitle>Edit content</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2"><Label>Author name</Label><Input value={proof.author_name ?? ""} onChange={(e) => setProof({ ...proof, author_name: e.target.value })} /></div>
+          <div className="space-y-2"><Label className="inline-flex items-center gap-1">Author name<InfoTip term="author" /></Label><Input value={proof.author_name ?? ""} onChange={(e) => setProof({ ...proof, author_name: e.target.value })} /></div>
           <div className="space-y-2">
-            <Label>Verification</Label>
+            <Label className="inline-flex items-center gap-1">Verification<InfoTip term="verificationTier" /></Label>
             <Select value={proof.verified ? "verified" : "unverified"} onValueChange={(v) => setProof({ ...proof, verified: v === "verified" })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -322,7 +322,7 @@ export default function ProofDetail() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Rating</Label>
+            <Label className="inline-flex items-center gap-1">Rating<InfoTip term="rating" /></Label>
             <div className="flex items-center gap-1">
               {[1,2,3,4,5].map((n) => (
                 <button key={n} type="button" onClick={() => setProof({ ...proof, rating: n })} className="p-1">

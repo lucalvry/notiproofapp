@@ -179,7 +179,6 @@ export default function BillingSettings() {
   return (
     <div className="space-y-6 animate-fade-in max-w-5xl">
       <div>
-        <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">SET-04</div>
         <h1 className="text-3xl font-bold mt-1">Billing</h1>
         <p className="text-muted-foreground mt-1">Manage your plan, usage, and invoices.</p>
         <div className="mt-2"><VideoBadgeLink audience="marketer" label="What paid plans unlock (1:20)" /></div>

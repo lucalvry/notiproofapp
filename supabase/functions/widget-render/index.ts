@@ -9,6 +9,8 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
+import { trialStatus } from "../_shared/trial.ts";
+
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -57,7 +59,7 @@ Deno.serve(async (req) => {
 
     const { data: bizRow } = await supabase
       .from("businesses")
-      .select("name, website_url, plan")
+      .select("name, website_url, plan, trial_ends_at")
       .eq("id", businessId)
       .maybeSingle();
     const business = bizRow
@@ -68,6 +70,14 @@ Deno.serve(async (req) => {
     // Even if the saved widget config has `powered_by: false`, plans that
     // don't include `removeBranding` (Free) get the badge forced back on
     // here, so the lock cannot be bypassed by editing config in the DB.
+    // Free trial ended → popup pauses quietly until the business upgrades.
+    if (bizRow && trialStatus({ plan: bizRow.plan, trial_ends_at: (bizRow as any).trial_ends_at }).state === "ended") {
+      const { data: unlimited } = await supabase.rpc("business_is_unlimited", { _business_id: businessId });
+      if (unlimited !== true) {
+        return json({ widget: null, business, proofs: [], disabled: true, reason: "trial_ended" });
+      }
+    }
+
     if (bizRow?.plan) {
       const [{ data: usage }, { data: limits }] = await Promise.all([
         supabase.rpc("business_plan_usage", { _business_id: businessId }),

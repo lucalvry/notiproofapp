@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RequiredLabel, FieldHint } from "@/components/forms/RequiredField";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -75,7 +76,7 @@ export function StepRequest({ type, config, onChange }: Props) {
     <div className="space-y-6">
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor="subject">Email subject</Label>
+          <RequiredLabel htmlFor="subject">Email subject</RequiredLabel>
           <Button type="button" size="sm" variant="ghost" onClick={suggest} disabled={suggesting}>
             {suggesting ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 mr-1" />}
             Suggest subjects
@@ -83,11 +84,14 @@ export function StepRequest({ type, config, onChange }: Props) {
         </div>
         <Input
           id="subject"
+          required
           value={config.subject ?? ""}
           onChange={(e) => onChange({ subject: e.target.value })}
           maxLength={120}
           placeholder="Mind sharing your experience?"
+          aria-invalid={!(config.subject ?? "").trim()}
         />
+        <FieldHint>The subject line customers see in their inbox — keep it short and specific.</FieldHint>
         {suggestions.length > 0 && (
           <div className="flex flex-wrap gap-2 pt-1">
             {suggestions.map((s, i) => (

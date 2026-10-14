@@ -10,6 +10,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { rateLimit, tooMany, callerIp } from "../_shared/rate-limit.ts";
 import { captureEdgeError } from "../_shared/sentry.ts";
 import { handleReferralEvent } from "../_shared/referral-commission.ts";
+import { recordInvocation } from "../_shared/monitoring.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -274,6 +275,8 @@ Deno.serve(async (req) => {
   }
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
+  const started = Date.now();
+  let processingError: string | null = null;
 
   // 1) Billing lifecycle: handle independently of integration_id.
   if (event.type && BILLING_EVENT_TYPES.has(event.type)) {
@@ -281,6 +284,7 @@ Deno.serve(async (req) => {
       await handleBillingEvent(supabase, event as { type: string; data: { object: Record<string, unknown> } });
     } catch (e) {
       console.error("billing event error", e);
+      processingError = "billing event failed to process";
       captureEdgeError(e, req, { function_name: "webhook-stripe", extra: { phase: "billing", event_type: event.type } });
     }
   }
@@ -291,6 +295,7 @@ Deno.serve(async (req) => {
       await handleReferralEvent(supabase, event as { type: string; data: { object: Record<string, unknown> } });
     } catch (e) {
       console.error("referral event error", e);
+      processingError ??= "referral event failed to process";
       captureEdgeError(e, req, { function_name: "webhook-stripe", extra: { phase: "referral", event_type: event.type } });
     }
   }
@@ -436,6 +441,7 @@ Deno.serve(async (req) => {
       }
       } catch (e) {
         handlerError = (e as Error).message;
+        processingError ??= "integration event failed to process";
         console.error("stripe integration handler error", e);
         captureEdgeError(e, req, { function_name: "webhook-stripe", extra: { phase: "integration", event_type: event.type } });
       }
@@ -454,6 +460,15 @@ Deno.serve(async (req) => {
         last_sync_at: new Date().toISOString(),
       }).eq("id", integ.id);
     }
+  }
+
+  // Delivery evidence for platform-monitor: only signature-verified events, metadata only.
+  if (STRIPE_WEBHOOK_SECRET) {
+    await recordInvocation(
+      supabase, "webhook-stripe", started, processingError ? "error" : "ok",
+      { event_type: event.type ?? "unknown", path: integrationId ? "integration" : "billing" },
+      processingError ?? undefined,
+    ).catch((e) => console.error("delivery log failed", e));
   }
 
   return new Response(JSON.stringify({ received: true }), {

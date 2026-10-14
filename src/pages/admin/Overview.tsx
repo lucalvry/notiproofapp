@@ -9,6 +9,7 @@ import IntegrationsTab from "./tabs/IntegrationsTab";
 import AgenciesTab from "./tabs/AgenciesTab";
 import AIPipelinesTab from "./tabs/AIPipelinesTab";
 import EnrichmentTab from "./tabs/EnrichmentTab";
+import EmailsTab from "./tabs/EmailsTab";
 
 const TABS = [
   { id: "overview", label: "Overview" },
@@ -18,6 +19,7 @@ const TABS = [
   { id: "ai", label: "AI Pipelines" },
   { id: "integrations", label: "Integrations" },
   { id: "enrichment", label: "Enrichment" },
+  { id: "emails", label: "Emails" },
   { id: "system", label: "System" },
 ] as const;
 
@@ -33,7 +35,6 @@ export default function AdminOverview() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">ADM-01</div>
         <h1 className="text-3xl font-bold mt-1">Admin dashboard</h1>
         <p className="text-muted-foreground mt-1">
           Platform health, revenue, AI pipelines, integrations and system status — in one place.
@@ -41,7 +42,7 @@ export default function AdminOverview() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setTab}>
-        <TabsList className="grid grid-cols-4 lg:grid-cols-8 h-auto">
+        <TabsList className="grid grid-cols-4 lg:grid-cols-9 h-auto">
           {TABS.map((t) => (
             <TabsTrigger key={t.id} value={t.id} className="text-xs lg:text-sm">
               {t.label}
@@ -69,6 +70,9 @@ export default function AdminOverview() {
         </TabsContent>
         <TabsContent value="enrichment" className="mt-6">
           <EnrichmentTab />
+        </TabsContent>
+        <TabsContent value="emails" className="mt-6">
+          <EmailsTab />
         </TabsContent>
         <TabsContent value="system" className="mt-6">
           <SystemTab />

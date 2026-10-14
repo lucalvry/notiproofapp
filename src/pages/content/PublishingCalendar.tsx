@@ -1,3 +1,4 @@
+import { InfoTip } from "@/components/help/InfoTip";
 import { useEffect, useMemo, useState } from "react";
 import { Calendar, dateFnsLocalizer, Views } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
@@ -102,8 +103,7 @@ export default function PublishingCalendar() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">PUB-02</div>
-        <h1 className="text-3xl font-bold mt-1">Publishing calendar</h1>
+        <h1 className="text-3xl font-bold mt-1 inline-flex items-center gap-2">Publishing calendar<InfoTip term="calendar" /></h1>
         <p className="text-muted-foreground mt-1">Scheduled and published content across all channels.</p>
       </div>
       <ContentSubNav />

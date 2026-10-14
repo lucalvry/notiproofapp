@@ -1,5 +1,11 @@
 # Roadmap
 
+- [x] Request and securely save OpenAI and Anthropic keys.
+- [x] Repair dashboard and related action hover contrast.
+- [x] Repair platform/email/Stripe monitoring and verify scheduled callbacks.
+- [x] Validate changes and report external verification limits.
+- [ ] Confirm a live Stripe delivery (user resends a recent event from the Stripe dashboard).
+
 - [x] Move the main app navigation into an expanded-by-default collapsible sidebar.
 - [x] Align the Agency workspace with the shared collapsible sidebar and mobile drawer.
 - [x] Align the Admin workspace with the shared collapsible sidebar and mobile drawer.
@@ -19,11 +25,18 @@
 - [ ] MCP server for ChatGPT/Claude (needs a hosting decision: Lovable Cloud or separate deployment).
 - [ ] Referral payouts via Stripe Connect — paused until the user sets up Stripe Connect.
 - [x] Settings pages full width.
-- [ ] Admin unlimited (DB limit checks + app).
-- [ ] Dashboard 7/30/90/365 filter; Analytics 90d/1y/custom.
-- [ ] Page tips + required-field markers.
-- [ ] Website required, business DNA AI, industries table, favicon, logo upload.
-- [ ] Guided setup checklist with import progress + approval.
-- [ ] Live-on-site verification (2-day not-detected).
-- [ ] Free-plan data history notice.
-- [ ] Lifecycle + win-back emails via Resend.
+- [x] Admin unlimited (DB limit checks + app + "Test as plan" preview switch).
+- [x] Dashboard 7/30/90/365 filter; Analytics 90d/1y/custom range.
+- [x] Page tips + required-field markers.
+- [x] Website required, business DNA AI, industries table, favicon, logo upload.
+- [x] Guided setup checklist with import progress + approval.
+- [x] Live-on-site verification (2-day not-detected).
+- [x] Free-plan data history notice.
+- [x] Lifecycle + win-back emails via Resend.
+
+## Free trial (3-day live proof)
+- [x] Trial helper + tests; start countdown on first impression; backfill current live Free users.
+- [x] Pause popup after trial; view-only mode with upgrade popup (app + database checks).
+- [x] Live countdown banner on dashboard and app layout.
+- [x] Trial emails (live, day 2, day 3, paused).
+- [x] Rename Free plan to "Free trial".

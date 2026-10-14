@@ -1,5 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RequiredLabel, FieldHint } from "@/components/forms/RequiredField";
 import { Card, CardContent } from "@/components/ui/card";
 import { ShoppingBag, Trophy, Calendar, Hand } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,14 +24,17 @@ export function StepName({ name, type, onChange }: Props) {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="campaign-name">Campaign name</Label>
+        <RequiredLabel htmlFor="campaign-name">Campaign name</RequiredLabel>
         <Input
           id="campaign-name"
+          required
           value={name}
           onChange={(e) => onChange({ name: e.target.value })}
           maxLength={100}
           placeholder="e.g. Post-purchase follow-up"
+          aria-invalid={!name.trim()}
         />
+        <FieldHint>Internal name shown on your campaigns list — customers never see it.</FieldHint>
       </div>
       <div className="space-y-2">
         <Label>Campaign type</Label>
