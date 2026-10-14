@@ -2271,6 +2271,10 @@ export type Database = {
           proof_count: number
         }[]
       }
+      business_is_unlimited: {
+        Args: { _business_id: string }
+        Returns: boolean
+      }
       business_plan_usage: { Args: { _business_id: string }; Returns: Json }
       can_activate_widget: {
         Args: { _business_id: string; _exclude_widget?: string }
