@@ -29,6 +29,20 @@ const EMPTY_USAGE: PlanUsage = {
   extra_seats: 0,
 };
 
+/** What a platform admin sees: every limit removed. */
+export const ADMIN_PLAN: PlanDefinition = {
+  ...planByKey("agency"),
+  name: "Admin (unlimited)",
+  proofLimit: Infinity,
+  eventLimit: Infinity,
+  domainLimit: Infinity,
+  storageMb: Infinity,
+  maxVideoSeconds: Infinity,
+  activeWidgetLimit: Infinity,
+  dataRetentionDays: Infinity,
+  teamSeatsIncluded: Infinity,
+};
+
 export function getEffectivePlan(business: { plan?: string | null; plan_tier?: string | null } | null | undefined): PlanDefinition {
   return planByKey(business?.plan ?? business?.plan_tier ?? "free");
 }
@@ -37,7 +51,7 @@ export function usePlan() {
   const { businesses, currentBusinessId, profile } = useAuth();
   const business = businesses.find((b) => b.id === currentBusinessId) ?? null;
   // Platform admins are never limited (mirrors business_is_unlimited() in the database).
-  const plan = profile?.is_admin ? planByKey("scale") : getEffectivePlan(business);
+  const plan = profile?.is_admin ? ADMIN_PLAN : getEffectivePlan(business);
   return { plan, business };
 }
 
