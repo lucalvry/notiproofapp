@@ -352,7 +352,10 @@ export function AppLayout() {
         <SidebarInset className="min-w-0">
           <ImpersonationBanner />
           <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between border-b bg-card px-3 md:px-4">
-            <SidebarTrigger className="h-9 w-9" />
+            <div className="flex items-center gap-1">
+              <SidebarTrigger className="h-9 w-9" />
+              <PageIntro />
+            </div>
             <div className="flex items-center gap-1">
               <NotificationBell />
               <UserAvatarMenu onSignOut={handleSignOut} />
