@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MessageSquareQuote, MonitorSmartphone, Plug, TrendingUp, Star, ShieldCheck, Sparkles } from "lucide-react";
 import { UsageBanner } from "@/components/billing/UsageBanner";
 import { YouTubeEmbed } from "@/components/video/YouTubeEmbed";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { usePlan } from "@/lib/plan-helpers";
 
 import type { Database } from "@/integrations/supabase/types";
 
@@ -46,6 +48,8 @@ export default function Dashboard() {
   const [feed, setFeed] = useState<ProofRow[] | null>(null);
   const [contentStats, setContentStats] = useState<{ pending: number; published_7d: number; recent: any[] } | null>(null);
   const navigate = useNavigate();
+  const { plan } = usePlan();
+  const [days, setDays] = useState("30");
 
   const loadFeed = (bizId: string) =>
     (supabase as any)
@@ -60,9 +64,9 @@ export default function Dashboard() {
     if (!currentBusinessId) return;
     // Spec DASH-01: "Assisted conversions this week" → conversion_assist events in last 7 days.
     const since = new Date();
-    since.setDate(since.getDate() - 7);
+    since.setDate(since.getDate() - Number(days));
     Promise.all([
-      supabase.from("proof_objects").select("id", { count: "exact", head: true }).eq("business_id", currentBusinessId),
+      supabase.from("proof_objects").select("id", { count: "exact", head: true }).eq("business_id", currentBusinessId).gte("created_at", since.toISOString()),
       supabase.from("widgets").select("id", { count: "exact", head: true }).eq("business_id", currentBusinessId).eq("status", "active"),
       supabase.from("integrations").select("id", { count: "exact", head: true }).eq("business_id", currentBusinessId).eq("status", "connected"),
       (supabase as any).from("widget_events").select("id", { count: "exact", head: true }).eq("business_id", currentBusinessId).eq("event_type", "conversion_assist").gte("fired_at", since.toISOString()),
@@ -75,7 +79,7 @@ export default function Dashboard() {
 
     // Content widget data
     const since7 = new Date();
-    since7.setDate(since7.getDate() - 7);
+    since7.setDate(since7.getDate() - Number(days));
     Promise.all([
       (supabase as any).from("content_pieces").select("id", { count: "exact", head: true }).eq("business_id", currentBusinessId).eq("status", "pending_review"),
       (supabase as any).from("content_publish_events").select("id", { count: "exact", head: true }).eq("business_id", currentBusinessId).eq("status", "published").gte("published_at", since7.toISOString()),
@@ -100,30 +104,46 @@ export default function Dashboard() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentBusinessId]);
+  }, [currentBusinessId, days]);
 
   const cards = [
-    { label: "Total proof", value: stats?.proof, icon: MessageSquareQuote, color: "text-accent", to: "/proof" },
+    { label: "Proof added", value: stats?.proof, icon: MessageSquareQuote, color: "text-accent", to: "/proof" },
     { label: "Active widgets", value: stats?.widgets, icon: MonitorSmartphone, color: "text-teal", to: "/widgets" },
     { label: "Integrations", value: stats?.integrations, icon: Plug, color: "text-purple", to: "/integrations" },
-    { label: "Assisted conversions (7d)", value: stats?.conversions, icon: TrendingUp, color: "text-gold", to: "/analytics" },
-    { label: "Content this week", value: stats?.content_week, icon: Sparkles, color: "text-purple", to: "/content" },
+    { label: "Assisted conversions", value: stats?.conversions, icon: TrendingUp, color: "text-gold", to: "/analytics" },
+    { label: "Content created", value: stats?.content_week, icon: Sparkles, color: "text-purple", to: "/content" },
   ];
 
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">DASH-01</div>
           <h1 className="text-3xl font-bold mt-1">Welcome back{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}</h1>
           {currentBusiness && (
             <p className="text-muted-foreground mt-1">{currentBusiness.name} · <span className="capitalize">{currentBusiness.role}</span></p>
           )}
         </div>
-        <Button asChild><Link to="/widgets/new">Create widget</Link></Button>
+        <div className="flex items-center gap-2">
+          <Select value={days} onValueChange={setDays}>
+            <SelectTrigger className="w-40" aria-label="Date range"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {[["7", "Last 7 days"], ["30", "Last 30 days"], ["90", "Last 90 days"], ["365", "Last 12 months"]].map(([v, l]) => (
+                <SelectItem key={v} value={v} disabled={Number(v) > plan.dataRetentionDays}>
+                  {l}{Number(v) > plan.dataRetentionDays ? " — paid plans" : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button asChild><Link to="/widgets/new">Create widget</Link></Button>
+        </div>
       </div>
 
       <UsageBanner />
+      {Number.isFinite(plan.dataRetentionDays) && (
+        <p className="text-sm text-muted-foreground">
+          Your {plan.name} plan keeps {plan.dataRetentionDays} days of history. <Link to="/settings/billing" className="underline font-medium">Upgrade</Link> to keep your data longer.
+        </p>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {cards.map(({ label, value, icon: Icon, color, to }) => (
@@ -217,7 +237,7 @@ export default function Dashboard() {
             <div className="space-y-3">
               <div className="flex gap-4 text-xs text-muted-foreground">
                 <span><span className="font-semibold text-foreground">{contentStats.pending}</span> pending review</span>
-                <span><span className="font-semibold text-foreground">{contentStats.published_7d}</span> published in last 7 days</span>
+                <span><span className="font-semibold text-foreground">{contentStats.published_7d}</span> published in this period</span>
               </div>
               <ul className="divide-y">
                 {contentStats.recent.map((c) => (
