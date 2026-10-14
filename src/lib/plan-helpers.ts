@@ -34,9 +34,10 @@ export function getEffectivePlan(business: { plan?: string | null; plan_tier?: s
 }
 
 export function usePlan() {
-  const { businesses, currentBusinessId } = useAuth();
+  const { businesses, currentBusinessId, profile } = useAuth();
   const business = businesses.find((b) => b.id === currentBusinessId) ?? null;
-  const plan = getEffectivePlan(business);
+  // Platform admins are never limited (mirrors business_is_unlimited() in the database).
+  const plan = profile?.is_admin ? planByKey("scale") : getEffectivePlan(business);
   return { plan, business };
 }
 
