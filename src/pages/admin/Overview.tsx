@@ -2,7 +2,6 @@ import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import OverviewTab from "./tabs/OverviewTab";
 import SystemTab from "./tabs/SystemTab";
-import PlaceholderTab from "./tabs/PlaceholderTab";
 import RevenueTab from "./tabs/RevenueTab";
 import UsersTab from "./tabs/UsersTab";
 import IntegrationsTab from "./tabs/IntegrationsTab";

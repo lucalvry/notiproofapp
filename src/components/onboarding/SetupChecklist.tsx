@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { businessStepDone } from "@/lib/setup-progress";
 import { CheckCircle2, Circle, X } from "lucide-react";
 
 interface ChecklistCounts {
@@ -18,6 +19,7 @@ interface ChecklistCounts {
   proofApproved: number;
   widgets: number;
   firstWidgetId: string | null;
+  domainCount: number;
 }
 
 interface Step {
@@ -52,7 +54,8 @@ export function SetupChecklist() {
       supabase.from("proof_objects").select("id", { count: "exact", head: true }).eq("business_id", currentBusinessId).eq("status", "approved"),
       supabase.from("widgets").select("id", { count: "exact", head: true }).eq("business_id", currentBusinessId),
       supabase.from("widgets").select("id").eq("business_id", currentBusinessId).order("created_at", { ascending: true }).limit(1),
-    ]).then(([biz, integrations, requests, proofTotal, proofApproved, widgets, firstWidget]: any[]) => {
+      supabase.from("business_domains").select("id", { count: "exact", head: true }).eq("business_id", currentBusinessId),
+    ]).then(([biz, integrations, requests, proofTotal, proofApproved, widgets, firstWidget, domains]: any[]) => {
       const bizRow = (biz.data ?? {}) as { website_url?: string | null; install_verified?: boolean | null };
       setCounts({
         websiteUrl: bizRow.website_url ?? null,
@@ -63,6 +66,7 @@ export function SetupChecklist() {
         proofApproved: proofApproved.count ?? 0,
         widgets: widgets.count ?? 0,
         firstWidgetId: firstWidget.data?.[0]?.id ?? null,
+        domainCount: domains.count ?? 0,
       });
     }).catch(() => {
       setCounts({
@@ -74,6 +78,7 @@ export function SetupChecklist() {
         proofApproved: 0,
         widgets: 0,
         firstWidgetId: null,
+        domainCount: 0,
       });
     });
   }, [currentBusinessId]);
@@ -97,7 +102,7 @@ export function SetupChecklist() {
       key: "business",
       step: "business",
       title: "Add your business + website",
-      done: !!currentBusiness && !!counts.websiteUrl,
+      done: !!currentBusiness && businessStepDone({ website_url: counts.websiteUrl, domainCount: counts.domainCount }),
           },
     {
       key: "source",

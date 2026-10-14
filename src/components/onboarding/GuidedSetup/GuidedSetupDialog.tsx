@@ -108,20 +108,20 @@ export function GuidedSetupDialog() {
           {step === "connect" && (
             <ConnectStep
               businessId={effectiveBusinessId}
-              onSkip={() => goNext("proof")}
-              onConnected={() => goNext("proof")}
+              onSkip={() => goNext("widget")}
+              onConnected={() => goNext("widget")}
             />
           )}
           {step === "proof" && (
-            <ProofStep businessId={effectiveBusinessId} onSkip={() => goNext("widget")} onSent={() => goNext("widget")} />
+            <ProofStep businessId={effectiveBusinessId} onSkip={() => goNext("install")} onSent={() => goNext("install")} />
           )}
           {step === "widget" && (
             <WidgetStep
               businessId={effectiveBusinessId}
-              onSkip={() => goNext("install")}
+              onSkip={() => goNext("proof")}
               onCreated={(id) => {
                 setCreatedWidgetId(id);
-                goNext("install");
+                goNext("proof");
               }}
             />
           )}

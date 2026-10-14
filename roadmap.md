@@ -17,12 +17,12 @@
 - [x] Give the official logo a white container in every signed-in sidebar state.
 - [x] Generate widget snippets from the stable app.notiproof.xyz address.
 - [x] Replace lucalvry.com with notiproof.xyz as the approved website, as selected.
-- [ ] Add the corrected widget snippet to the separately managed notiproof.xyz website.
+- [x] Widget live on notiproof.xyz (confirmed by user).
 - [x] Audit report v2: compare uploaded spec documents with the build; research ChatGPT/Claude/MCP.
 - [x] Required sign-up questions (reason + source with follow-ups) and admin view.
 - [x] Referral program: links, 20% recurring commission from Stripe, refunds reverse, payouts page and admin mark-paid.
 - [ ] Add `charge.refunded` to the Stripe webhook events in the Stripe dashboard (needs the user's Stripe access).
-- [ ] MCP server for ChatGPT/Claude (needs a hosting decision: Lovable Cloud or separate deployment).
+- [ ] MCP server for ChatGPT/Claude — to run as a function on the existing Vercel host; Lovable tooling cannot build/deploy it here.
 - [ ] Referral payouts via Stripe Connect — paused until the user sets up Stripe Connect.
 - [x] Settings pages full width.
 - [x] Admin unlimited (DB limit checks + app + "Test as plan" preview switch).
@@ -40,3 +40,18 @@
 - [x] Live countdown banner on dashboard and app layout.
 - [x] Trial emails (live, day 2, day 3, paused).
 - [x] Rename Free plan to "Free trial".
+
+## Close gaps (Oct 14 plan)
+- [x] Countdown appears without refresh; step 1 counts saved domains (shared rule).
+- [x] Website backfilled from domains; Free trial allows 3 active widgets.
+- [x] Live widget honours selected proofs, rotation, text/video filter; "Add to widget" works.
+- [ ] AI business details: 3 businesses have no website; aroa.munoz.work site blocks reading (owner must fill in Settings).
+- [x] Connect-flow checks: Google, WooCommerce (signature fix), Zapier.
+- [ ] Shopify + Stripe connect test (needs user test store/account).
+- [x] Wall of Love page (/wall/:businessId) + copy link in Proof Library.
+- [x] General collection link per business (/collect/b/:businessId).
+- [x] Guided setup reorder.
+- [x] Layout gallery of all layouts (/widgets/gallery).
+- [x] Testimonial funnel on Requests page. (Frequency cap already enforced in widget.js.)
+- [x] Moderation CSV export; AI auto-tag hourly; unused admin placeholder removed.
+- [x] Admin agency detail page.

@@ -13,6 +13,7 @@ import { AttributionGate } from "@/components/auth/AttributionGate";
 import ReferralsSettings from "./pages/settings/Referrals";
 import AdminGrowth from "./pages/admin/Growth";
 import AdminUsers from "./pages/admin/Users";
+import AdminDormant from "./pages/admin/Dormant";
 import AdminAuditLog from "./pages/admin/AuditLog";
 
 import Index from "./pages/Index";
@@ -32,6 +33,7 @@ import ProofRequests from "./pages/proof/ProofRequests";
 
 import WidgetsList from "./pages/widgets/WidgetsList";
 import WidgetEditor from "./pages/widgets/WidgetEditor";
+import WidgetGallery from "./pages/widgets/WidgetGallery";
 
 import IntegrationsList from "./pages/integrations/IntegrationsList";
 import IntegrationDetail from "./pages/integrations/IntegrationDetail";
@@ -64,10 +66,13 @@ import BrandVoiceSettings from "./pages/settings/BrandVoice";
 import ContentPreferences from "./pages/settings/ContentPreferences";
 
 import Collect, { CollectThanks } from "./pages/collect/Collect";
+import Wall from "./pages/wall/Wall";
+import OpenCollect from "./pages/collect/OpenCollect";
 
 import AdminOverview from "./pages/admin/Overview";
 import AdminBusinesses from "./pages/admin/Businesses";
 import BusinessDetail from "./pages/admin/BusinessDetail";
+import AgencyDetail from "./pages/admin/AgencyDetail";
 import Moderation from "./pages/admin/Moderation";
 import Health from "./pages/admin/Health";
 
@@ -179,8 +184,10 @@ const App = () => (
 
 
           {/* Public collection */}
+          <Route path="/collect/b/:businessId" element={<OpenCollect />} />
           <Route path="/collect/:token" element={<Collect />} />
           <Route path="/collect/:token/done" element={<CollectThanks />} />
+          <Route path="/wall/:businessId" element={<Wall />} />
 
           {/* Onboarding */}
           <Route element={<WizardLayout />}>
@@ -200,6 +207,7 @@ const App = () => (
             <Route path="/proof/:id" element={<ProofDetail />} />
 
             <Route path="/widgets" element={<WidgetsList />} />
+            <Route path="/widgets/gallery" element={<WidgetGallery />} />
             <Route path="/widgets/new" element={<WidgetEditor />} />
             <Route path="/widgets/:id/edit" element={<WidgetEditor />} />
 
@@ -245,10 +253,12 @@ const App = () => (
             <Route path="/admin/dashboard" element={<AdminOverview />} />
             <Route path="/admin/businesses" element={<AdminBusinesses />} />
             <Route path="/admin/businesses/:id" element={<BusinessDetail />} />
+            <Route path="/admin/agencies/:id" element={<AgencyDetail />} />
             <Route path="/admin/moderation" element={<Moderation />} />
             <Route path="/admin/health" element={<Health />} />
             <Route path="/admin/growth" element={<AdminGrowth />} />
             <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/dormant" element={<AdminDormant />} />
             <Route path="/admin/audit" element={<AdminAuditLog />} />
             <Route path="/admin/system" element={<Navigate to="/admin/dashboard?tab=system" replace />} />
           </Route>

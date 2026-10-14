@@ -240,20 +240,32 @@ Deno.serve(async (req) => {
 
   const { data: integ } = await supabase
     .from("integrations")
-    .select("id, business_id, platform, auto_request_enabled, auto_request_delay_days, config")
+    .select("id, business_id, platform, auto_request_enabled, auto_request_delay_days, config, credentials, credentials_encrypted")
     .eq("id", integrationId)
     .maybeSingle();
 
   if (!integ || integ.platform !== "woocommerce") return json({ error: "Integration not found" }, 404);
 
-  const webhookSecret = (integ.config as any)?.webhook_secret as string | undefined;
+  // The signing secret is stored with the credentials (encrypted when PII
+  // encryption is on); older rows may still carry it in config.
+  let storedCreds: Record<string, string | undefined> = {};
+  try {
+    if (piiEncryptionEnabled && (integ as any).credentials_encrypted) {
+      storedCreds = (await decryptJson<Record<string, string | undefined>>((integ as any).credentials_encrypted)) ?? {};
+    } else {
+      storedCreds = ((integ as any).credentials ?? {}) as Record<string, string | undefined>;
+    }
+  } catch (e) {
+    console.warn("could not decrypt wc credentials", e);
+  }
+  const webhookSecret = storedCreds.webhook_secret ?? ((integ.config as any)?.webhook_secret as string | undefined);
 
   if (!raw || raw === "{}") return json({ received: true, ping: true });
 
-  if (webhookSecret) {
-    const ok = await verifyHmac(raw, signature, webhookSecret);
-    if (!ok) return json({ error: "Invalid signature" }, 401);
-  }
+  // Every event must be signed; unsigned or unverifiable events are refused.
+  if (!webhookSecret) return json({ error: "Webhook secret not configured — reconnect the store" }, 401);
+  const ok = await verifyHmac(raw, signature, webhookSecret);
+  if (!ok) return json({ error: "Invalid signature" }, 401);
 
   let payload: any;
   try { payload = JSON.parse(raw); } catch {

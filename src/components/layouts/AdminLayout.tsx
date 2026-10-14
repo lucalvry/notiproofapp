@@ -14,6 +14,7 @@ import {
   ScrollText,
   LogOut,
   ArrowLeft,
+  MailWarning,
 } from "lucide-react";
 import {
   Sidebar,
@@ -36,6 +37,7 @@ import {
 const adminNav = [
   { to: "/admin/dashboard", label: "Overview", icon: LayoutDashboard },
   { to: "/admin/users", label: "Users", icon: Users },
+  { to: "/admin/dormant", label: "Dormant users", icon: MailWarning },
   { to: "/admin/businesses", label: "Businesses", icon: Building2 },
   { to: "/admin/moderation", label: "Moderation", icon: ShieldAlert },
   { to: "/admin/health", label: "Health", icon: HeartPulse },

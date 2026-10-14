@@ -1,3 +1,4 @@
+import { APP_URL } from "@/lib/app-url";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -267,11 +268,23 @@ export default function ProofLibrary() {
           <h1 className="text-3xl font-bold mt-1 flex items-center gap-2">Proof library <InfoTip term="library" /></h1>
           <p className="text-muted-foreground mt-1">All testimonials, reviews and signals collected for your business.</p>
         </div>
+        <div className="flex gap-2">
+        {currentBusinessId && (
+          <Button variant="outline" onClick={() => { navigator.clipboard.writeText(`${APP_URL}/wall/${currentBusinessId}`); toast({ title: "Wall of Love link copied" }); }}>
+            Copy Wall of Love link
+          </Button>
+        )}
+        {currentBusinessId && (
+          <Button variant="outline" onClick={() => { navigator.clipboard.writeText(`${APP_URL}/collect/b/${currentBusinessId}`); toast({ title: "Collection link copied", description: "Share it anywhere — each visitor gets their own form." }); }}>
+            Copy collection link
+          </Button>
+        )}
         {canEdit && (
           <Button onClick={() => setRequestModalOpen(true)}>
             <Send className="h-4 w-4 mr-2" /> Request testimonial
           </Button>
         )}
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[260px_1fr]">

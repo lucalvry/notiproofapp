@@ -95,19 +95,37 @@ Deno.serve(async (req) => {
       }
     }
 
-    const { data: proofs, error: pErr } = await supabase
+    // Honour the widget's proof selection, media filter and rotation.
+    const cfg = ((widget as any)?.config ?? {}) as Record<string, any>;
+    let pq = supabase
       .from("proof_objects")
       .select(
         "id, type, content, highlight_phrase, author_name, author_avatar_url, author_photo_url, author_role, author_company, author_company_logo_url, author_website_url, cta_label, cta_url, rating, media_url, poster_url, source, created_at",
       )
       .eq("business_id", businessId)
-      .eq("status", "approved")
-      .order("published_at", { ascending: false, nullsFirst: false })
-      .order("created_at", { ascending: false })
-      .limit(limit);
+      .eq("status", "approved");
+    const selectedIds: string[] = Array.isArray(cfg.selected_proof_ids) ? cfg.selected_proof_ids : [];
+    if (cfg.source_filter === "selected") {
+      if (selectedIds.length === 0) return json({ widget, business, proofs: [] });
+      pq = pq.in("id", selectedIds);
+    }
+    if (cfg.media_filter === "video") pq = pq.not("media_url", "is", null);
+    if (cfg.media_filter === "text") pq = pq.is("media_url", null);
+    if (cfg.rotation === "rating") pq = pq.order("rating", { ascending: false, nullsFirst: false });
+    pq = pq.order("published_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false });
+    const { data: rows, error: pErr } = await pq.limit(cfg.rotation === "random" ? 50 : limit);
     if (pErr) throw pErr;
+    let proofs = rows ?? [];
+    if (cfg.rotation === "random") {
+      proofs = [...proofs];
+      for (let i = proofs.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [proofs[i], proofs[j]] = [proofs[j], proofs[i]];
+      }
+      proofs = proofs.slice(0, limit);
+    }
 
-    return json({ widget, business, proofs: proofs ?? [] });
+    return json({ widget, business, proofs });
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
   }

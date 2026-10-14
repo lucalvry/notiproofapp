@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -94,7 +95,7 @@ export default function AgenciesTab() {
                 <tbody>
                   {agencies.map((a: any) => (
                     <tr key={a.id} className="border-b last:border-0">
-                      <td className="py-2 pr-3 truncate max-w-[220px]">{a.name}</td>
+                      <td className="py-2 pr-3 truncate max-w-[220px]"><Link className="underline" to={`/admin/agencies/${a.id}`}>{a.name}</Link></td>
                       <td className="py-2 pr-3">
                         <Badge variant="outline" className="text-xs">{a.plan_tier ?? "—"}</Badge>
                         {a.reseller_mode && <Badge variant="secondary" className="ml-1 text-xs">reseller</Badge>}

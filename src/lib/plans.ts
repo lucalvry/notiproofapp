@@ -71,7 +71,7 @@ export const PLANS: PlanDefinition[] = [
     storageMb: 100,
     maxVideoSeconds: 30,
     removeBranding: false,
-    activeWidgetLimit: 1,
+    activeWidgetLimit: 3,
     dataRetentionDays: 30,
     teamSeatsIncluded: 1,
     extraSeatPriceUsd: 0,

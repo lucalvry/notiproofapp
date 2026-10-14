@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -119,12 +119,15 @@ export default function WidgetEditor() {
     A: { impressions: number; interactions: number };
     B: { impressions: number; interactions: number };
   } | null>(null);
+  const [searchParams] = useSearchParams();
+  const qv = searchParams.get("variant") as Variant | null;
+  const initialVariant: Variant = qv && qv in variantToType ? qv : "floating";
   const [w, setW] = useState<Partial<Widget>>({
     name: "Untitled widget",
-    type: "popup",
+    type: variantToType[initialVariant],
     status: "draft",
     config: {
-      variant: "floating",
+      variant: initialVariant,
       position: "bottom-left",
       interval_seconds: 6,
       show_avatar: true,
@@ -714,6 +717,17 @@ export default function WidgetEditor() {
                       <SelectItem value="newest">Newest first</SelectItem>
                       <SelectItem value="random">Random</SelectItem>
                       <SelectItem value="rating">Highest rating first</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Proof format</Label>
+                  <Select value={(cfg as any).media_filter ?? "all"} onValueChange={(v) => updateConfig({ media_filter: v } as any)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Text and video</SelectItem>
+                      <SelectItem value="text">Text only</SelectItem>
+                      <SelectItem value="video">Video only</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

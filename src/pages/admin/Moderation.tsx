@@ -122,11 +122,28 @@ export default function Moderation() {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
         <h1 className="text-3xl font-bold mt-1">Moderation queue</h1>
         <p className="text-muted-foreground mt-1">
           Review submitted proof before it goes live. Click any row to inspect details.
         </p>
+      </div>
+        <button
+          type="button"
+          className="inline-flex h-9 items-center rounded-md border px-3 text-sm hover:bg-muted/40"
+          onClick={() => {
+            const cols = ["id", "business_id", "type", "status", "author_name", "rating", "source", "content", "created_at"];
+            const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+            const csv = [cols.join(","), ...items.map((r: any) => cols.map((c) => esc(r[c])).join(","))].join("\n");
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+            a.download = `moderation-${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+          }}
+        >
+          Export CSV
+        </button>
       </div>
 
       <Card>

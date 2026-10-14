@@ -2356,6 +2356,20 @@ export type Database = {
           new_proofs: number
         }[]
       }
+      admin_dormant_users: {
+        Args: { _min_days?: number }
+        Returns: {
+          business_name: string
+          days_quiet: number
+          email: string
+          emails: Json
+          full_name: string
+          last_sign_in_at: string
+          plan: string
+          unsubscribed: boolean
+          user_id: string
+        }[]
+      }
       admin_integration_health: {
         Args: never
         Returns: {
@@ -2447,6 +2461,10 @@ export type Database = {
       }
       cleanup_rate_limits: { Args: never; Returns: number }
       create_business: { Args: { _name: string }; Returns: string }
+      create_open_collection_request: {
+        Args: { _business_id: string }
+        Returns: string
+      }
       create_placeholder_proof_for_request: {
         Args: { _business_id: string }
         Returns: string
@@ -2539,6 +2557,15 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
         }
         Returns: boolean
+      }
+      internal_dormant_users: {
+        Args: { _min_days: number }
+        Returns: {
+          email: string
+          full_name: string
+          last_sign_in_at: string
+          user_id: string
+        }[]
       }
       is_agency_admin: { Args: { _agency_id: string }; Returns: boolean }
       is_agency_member: { Args: { _agency_id: string }; Returns: boolean }

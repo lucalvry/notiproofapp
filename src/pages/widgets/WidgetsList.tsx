@@ -118,7 +118,10 @@ export default function WidgetsList() {
               </Tooltip>
             </TooltipProvider>
           ) : (
+            <div className="flex gap-2">
+            <Button asChild variant="outline"><Link to="/widgets/gallery">Browse layouts</Link></Button>
             <Button asChild><Link to="/widgets/new" onClick={(e) => { if (!trialGate.requireActive()) e.preventDefault(); }}><Plus className="h-4 w-4 mr-2" /> New widget</Link></Button>
+            </div>
           )
         )}
       </div>

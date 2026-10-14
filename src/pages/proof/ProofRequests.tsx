@@ -18,6 +18,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { UsageBanner } from "@/components/billing/UsageBanner";
 import { usePlanUsage } from "@/lib/plan-helpers";
 import { InfoTip } from "@/components/help/InfoTip";
+import { RequestFunnel } from "@/components/proof/RequestFunnel";
 import { proofRequestSchema, parseOrError } from "@/lib/validation";
 import { showRateLimitToastIf } from "@/lib/use-rate-limit-toast";
 
@@ -199,6 +200,8 @@ export default function ProofRequests() {
           </DialogContent>
         </Dialog>
       </div>
+
+      <RequestFunnel businessId={currentBusinessId} />
 
       <UsageBanner />
 

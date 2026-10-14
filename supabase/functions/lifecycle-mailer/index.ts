@@ -26,7 +26,8 @@ type Template =
   | 'trial_live'
   | 'trial_day2'
   | 'trial_day3'
-  | 'trial_paused';
+  | 'trial_paused'
+  | 'reactivation_manual';
 
 function renderEmail(template: Template, opts: { business?: any; appUrl: string; unsubUrl: string }) {
   const { business, appUrl, unsubUrl } = opts;
@@ -84,6 +85,12 @@ function renderEmail(template: Template, opts: { business?: any; appUrl: string;
       cta: 'Open dashboard',
       href: `${appUrl}/dashboard`,
     },
+    reactivation_manual: {
+      subject: 'Your NotiProof account is waiting for you',
+      lead: "It's been a while since you logged in. Your proof, widgets and stats are all still here — log back in to see what's new and get your social proof working again.",
+      cta: 'Log back in',
+      href: `${appUrl}/dashboard`,
+    },
     trial_live: {
       subject: 'Congratulations, your proof is live on your site! 🎉',
       lead: "Your NotiProof popup is now showing to real visitors, and your stats have started counting. This is a free trial, so it will only stay live for a short time. Upgrade to keep your proof showing without interruption.",
@@ -134,7 +141,18 @@ Deno.serve(async (req) => {
   try {
     const provided = req.headers.get('x-internal-secret');
     const expected = Deno.env.get('INTERNAL_TRIGGER_SECRET');
+    let manual: { user_ids: string[]; preview?: boolean } | null = null;
     if (!expected || provided !== expected) {
+      // Admin manual reactivation: verify the caller is a platform admin server-side.
+      const authHeader = req.headers.get('Authorization') || '';
+      const userClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: authHeader } } });
+      const { data: isAdmin } = authHeader ? await userClient.rpc('is_platform_admin') : { data: false };
+      const body = await req.json().catch(() => ({}));
+      if (isAdmin === true && body?.mode === 'reactivation' && Array.isArray(body.user_ids)) {
+        manual = { user_ids: body.user_ids.filter((x: unknown) => typeof x === 'string').slice(0, 500), preview: !!body.preview };
+      }
+    }
+    if (!manual && (!expected || provided !== expected)) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -192,6 +210,20 @@ Deno.serve(async (req) => {
       }
     }
 
+    if (manual) {
+      if (manual.preview) {
+        const { subject, html } = renderEmail('reactivation_manual', { appUrl, unsubUrl: `${appUrl}/unsubscribe` });
+        return new Response(JSON.stringify({ subject, html }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      const { data: us } = await admin.from('users').select('id, email, full_name').in('id', manual.user_ids);
+      let skipped = 0;
+      for (const u of us || []) {
+        if (!u.email || unsubscribed.has(u.email)) { skipped++; continue; }
+        await send('reactivation_manual', null, u.id, u.email, u.full_name, null);
+      }
+      return new Response(JSON.stringify({ ok: true, sent: sentCounts.reactivation_manual || 0, skipped, failed, errors }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     const now = Date.now();
     const daysAgoIso = (d: number) => new Date(now - d * 24 * 60 * 60 * 1000).toISOString();
 
@@ -220,7 +252,7 @@ Deno.serve(async (req) => {
         const { count } = await admin.from('proof_objects').select('id', { count: 'exact', head: true }).eq('business_id', biz.id);
         if ((count ?? 0) > 0) continue;
         for (const o of await getOwners(biz.id)) {
-          await send('setup_nudge_no_proof', biz.id, o.user_id, o.users.email, o.users.full_name, biz);
+          await send('setup_nudge_no_proof', biz.id, o.user_id, (o.users as any)?.email, (o.users as any)?.full_name, biz);
         }
       }
     }
@@ -236,7 +268,7 @@ Deno.serve(async (req) => {
         const { count } = await admin.from('widgets').select('id', { count: 'exact', head: true }).eq('business_id', biz.id);
         if ((count ?? 0) > 0) continue;
         for (const o of await getOwners(biz.id)) {
-          await send('setup_nudge_no_widget', biz.id, o.user_id, o.users.email, o.users.full_name, biz);
+          await send('setup_nudge_no_widget', biz.id, o.user_id, (o.users as any)?.email, (o.users as any)?.full_name, biz);
         }
       }
     }
@@ -251,7 +283,7 @@ Deno.serve(async (req) => {
       for (const biz of businesses || []) {
         if (await alreadySent(biz.id, null, 'setup_nudge_not_installed')) continue;
         for (const o of await getOwners(biz.id)) {
-          await send('setup_nudge_not_installed', biz.id, o.user_id, o.users.email, o.users.full_name, biz);
+          await send('setup_nudge_not_installed', biz.id, o.user_id, (o.users as any)?.email, (o.users as any)?.full_name, biz);
         }
       }
     }
@@ -275,7 +307,7 @@ Deno.serve(async (req) => {
         if ((count ?? 0) !== 1) continue; // only the very first approved proof
         const { data: biz } = await admin.from('businesses').select('id, name, logo_url, brand_color').eq('id', businessId).maybeSingle();
         for (const o of await getOwners(businessId)) {
-          await send('first_proof_live', businessId, o.user_id, o.users.email, o.users.full_name, biz);
+          await send('first_proof_live', businessId, o.user_id, (o.users as any)?.email, (o.users as any)?.full_name, biz);
         }
       }
     }
@@ -294,18 +326,15 @@ Deno.serve(async (req) => {
         const { data: unlimited } = await admin.rpc('business_is_unlimited', { _business_id: biz.id });
         if (unlimited === true) continue;
         for (const o of await getOwners(biz.id)) {
-          await send(due, biz.id, o.user_id, o.users.email, o.users.full_name, biz);
+          await send(due, biz.id, o.user_id, (o.users as any)?.email, (o.users as any)?.full_name, biz);
         }
       }
     }
 
-    // ---- winback_14 / 30 / 60: owner inactive for N days (users.updated_at) ----
+    // ---- winback_14 / 30 / 60: no login for N days (auth last_sign_in_at) ----
     for (const [template, days] of [['winback_14', 14], ['winback_30', 30], ['winback_60', 60]] as const) {
-      const cutoff = daysAgoIso(days);
-      const { data: inactiveUsers } = await admin
-        .from('users')
-        .select('id, email, full_name, updated_at')
-        .lte('updated_at', cutoff);
+      // Real inactivity: last login, never profile edits. Never-logged-in users are excluded.
+      const { data: inactiveUsers } = await admin.rpc('internal_dormant_users', { _min_days: days });
       for (const u of inactiveUsers || []) {
         if (!u.email) continue;
         if (await alreadySent(null, u.id, template)) continue;

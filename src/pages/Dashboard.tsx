@@ -47,7 +47,18 @@ function timeAgo(iso: string) {
 
 export default function Dashboard() {
   const trialGate = useTrialGate();
-  const { profile, businesses, currentBusinessId } = useAuth();
+  const { profile, businesses, currentBusinessId, refresh: refreshAuth } = useAuth();
+
+  // Pick up a trial that starts while this page is open (first widget impression).
+  const trialState = trialGate.status.state;
+  useEffect(() => {
+    if (trialState === "paid" || trialState === "ended") return;
+    const onVis = () => { if (document.visibilityState === "visible") refreshAuth(); };
+    document.addEventListener("visibilitychange", onVis);
+    const id = window.setInterval(() => refreshAuth(), 60_000);
+    return () => { document.removeEventListener("visibilitychange", onVis); window.clearInterval(id); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trialState]);
   const currentBusiness = businesses.find((b) => b.id === currentBusinessId);
   const [stats, setStats] = useState<Stats | null>(null);
   const [feed, setFeed] = useState<ProofRow[] | null>(null);
